@@ -1,4 +1,5 @@
 const http = require('node:http')
+const fs = require('node:fs')
 //const { findAvailablePort } = require('./10.free-port.js')
 
 console.log(process.env)
@@ -10,6 +11,17 @@ const processRequest = (req, res) => {
   if (req.url === '/') {
     res.statusCode = 200
     res.end('<h1>Bienvenido a mi página de inicio...</h1>')
+  } else if (req.url === '/imagen-bonita.png') {
+    res.setHeader('Content-Type', 'image/png')
+    fs.readFile('./placa.png', (err, data) => {
+      if (err) {
+        res.statusCode = 500
+        res.end('<h1>500 Internal Server Error</h1>')
+      } else {
+        res.setHeader('Content-Type', 'image/png')
+        res.end(data)
+      }
+    })
   } else if (req.url === '/contacto') {
     res.statusCode = 200
     res.end('<h1>Contacto</h1>')

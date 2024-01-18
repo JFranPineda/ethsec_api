@@ -6,15 +6,18 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node http.js",
-    "dev": "nodemon http.js"
+    "dev": "nodemon http.js",
+    "dev-2": "nodemon routing.js",
+    "dev-3": "node express.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "4.18.2"
   },
   "devDependencies": {
+    "nodemon": "^3.0.3",
     "standard": "^17.1.0"
   },
   "eslintConfig": {
