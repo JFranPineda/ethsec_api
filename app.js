@@ -13,7 +13,8 @@ app.use(cors({
       'http://localhost:8080',
       'http://localhost:3000',
       'https://movies.com',
-      'https://midu.dev'
+      'https://midu.dev',
+      'https://jfranpineda.github.io'
     ]
 
     if (ACCEPTED_ORIGINS.includes(origin)) {
