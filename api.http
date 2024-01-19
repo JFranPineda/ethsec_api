@@ -1,12 +1,5 @@
-GET http://localhost:3000/pokemon/ditto
+GET http://localhost:3000/movies
 ###
-POST http://localhost:3000/pokemon
-Content-Type: application/json
-
-{
-  "name": "ditto",
-  "type": "normal",
-  "moves": [
-      "transform"
-  ]
-}
+GET http://localhost:3000/movies/7e3fd5ab-60ff-4ae2-92b6-9597f0308d1
+###
+GET http://localhost:3000/movies?genre=terror
