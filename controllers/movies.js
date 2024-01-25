@@ -39,7 +39,7 @@ export class MovieController {
       return res.status(400).json({ error: JSON.parse(result.error.message) })
     }
     const { id } = req.params
-    const updatedMovie = await MovieModel.update({ id, input: result.data})
+    const updatedMovie = await MovieModel.update({ id, input: result.data })
     return res.json(updatedMovie)
   }
 }

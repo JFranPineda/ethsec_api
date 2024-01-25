@@ -5,7 +5,7 @@ async function connect () {
   try {
     await client.connect()
     const database = client.db('ethsec_billing')
-    return database.collection('movies')
+    return database.collection('products')
   } catch (error) {
     console.error('Error connecting to the database')
     console.error(error)
@@ -13,20 +13,19 @@ async function connect () {
   }
 }
 
-export class MovieModel {
-  static async getAll ({ genre }) {
+export class ProductModel {
+  static async getAll ({ model }) {
     const db = await connect()
-    if (genre) {
+    if (model) {
       return db.find({
-        genre: {
+        model: {
           $elemMatch: {
-            $regex: genre,
+            $regex: model,
             $options: 'i'
           }
         }
       }).toArray()
     }
-
     return db.find({}).toArray()
   }
 
