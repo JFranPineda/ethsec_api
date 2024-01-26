@@ -32,8 +32,11 @@ export class MovieModel {
 
   static async getById ({ id }) {
     const db = await connect()
-    const objectId = new ObjectId(id)
-    return db.findOne({ _id: objectId })
+    if (ObjectId.isValid(id)) {
+      const objectId = new ObjectId(id)
+      return db.findOne({ _id: objectId })
+    }
+    return {}
   }
 
   static async create ({ input }) {

@@ -5,7 +5,7 @@ async function connect () {
   try {
     await client.connect()
     const database = client.db('ethsec_billing')
-    return database.collection('products')
+    return database.collection('sellers')
   } catch (error) {
     console.error('Error connecting to the database')
     console.error(error)
@@ -13,11 +13,11 @@ async function connect () {
   }
 }
 
-export class ProductModel {
-  static async getAll ({ model }) {
+export class SellerModel {
+  static async getAll ({ firstName }) {
     const db = await connect()
-    if (model) {
-      return db.find({ model }).toArray()
+    if (firstName) {
+      return db.find({ first_name: firstName }).toArray()
     }
     return db.find({}).toArray()
   }

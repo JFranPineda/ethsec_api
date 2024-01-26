@@ -2,8 +2,8 @@ import z from 'zod'
 
 const productSchema = z.object({
   model: z.string({
-    invalid_type_error: 'Model title must be a string',
-    required_error: 'Model title is required.'
+    invalid_type_error: 'Model must be a string',
+    required_error: 'Model is required.'
   }),
   description: z.string(),
   quantity: z.number().int().min(0).max(10).default(1),
