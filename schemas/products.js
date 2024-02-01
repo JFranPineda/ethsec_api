@@ -6,7 +6,7 @@ const productSchema = z.object({
     required_error: 'Model is required.'
   }),
   description: z.string(),
-  quantity: z.number().int().min(0).max(10).default(1),
+  quantity: z.number().int().min(0).max(1000).default(1),
   price_non_igv: z.number().min(0).max(99999).default(1000),
   price_igv: z.number().min(0).max(99999).default(1180),
   price_pen_non_igv: z.number().min(0).max(99999).default(1000),

@@ -8,20 +8,18 @@ GET http://localhost:3000/sellers/65b2ff3b044ee3952ef68cfd
 GET http://localhost:3000/sellers?first_name=Victor%20Hugo
 
 ### Crear una película con POST
-POST http://localhost:3000/clients
+PATCH http://localhost:3000/products/65ba7d57d57146aaf06d57d4
 Content-Type: application/json
 
 {
-  "sql": "SELECT * FROM users",
-  "title": "The Godfather",
-  "year": 1975,
-  "director": "Francis Ford Coppola",
-  "duration": 175,
-  "poster": "https://img.fruugo.com/product/4/49/14441494_max.jpg",
-  "genre": [
-    "Crime",
-    "Drama"
-  ]
+  "description": "KIT PRO PLUS 01 Hub 2 Plus, 02 MotionCam, 02 DoorProtect, 01 SpaceControl, 01 HomeSiren",
+  "model":"Kit 03",
+  "price_igv":950,
+  "price_non_igv":805.93,
+  "price_pen_igv":3804,
+  "price_pen_non_igv":3223.73,
+  "quantity":100,
+  "_id":"65ba7d57d57146aaf06d57d4"
 }
 
 ### Borrar una película
@@ -32,5 +30,5 @@ PATCH http://localhost:3000/products/b07cd02a-d730-4507-96c8-b73a1bcbbc43
 Content-Type: application/json
 
 {
-  "year": 2023
+  "price_igv": 2023
 }
