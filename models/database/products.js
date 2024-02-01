@@ -50,8 +50,6 @@ export class ProductModel {
   static async update ({ id, input }) {
     const db = await connect()
     const objectId = new ObjectId(id)
-    console.log('update objectId: ', objectId)
-    console.log('update input: ', input)
     const { ok, value } = await db.findOneAndUpdate({ _id: objectId }, { $set: input }, { returnNewDocument: true })
 
     if (!ok) return false
