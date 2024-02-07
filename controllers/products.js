@@ -42,4 +42,17 @@ export class ProductController {
     const updatedProduct = await ProductModel.update({ id, input: result.data })
     return res.json(updatedProduct)
   }
+  /* eslint-disable camelcase */
+
+  static async updateMany (req, res) {
+    const { exchange_value, currency } = req.body
+    if (currency === 'PEN') {
+      return res.status(400).json({ error: currency })
+    }
+    if (!exchange_value) {
+      return res.status(400).json({ error: exchange_value })
+    }
+    const updatedProducts = await ProductModel.updateMany({ input: req.body })
+    return res.json(updatedProducts)
+  }
 }

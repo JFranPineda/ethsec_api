@@ -5,7 +5,7 @@ async function connect () {
   try {
     await client.connect()
     const database = client.db('ethsec_billing')
-    return database.collection('products')
+    return database.collection('billings')
   } catch (error) {
     console.error('Error connecting to the database')
     console.error(error)
@@ -13,11 +13,11 @@ async function connect () {
   }
 }
 
-export class ProductModel {
-  static async getAll ({ model }) {
+export class BillingModel {
+  static async getAll ({ billingNumber }) {
     const db = await connect()
-    if (model) {
-      return db.find({ model }).toArray()
+    if (billingNumber) {
+      return db.find({ billingNumber }).toArray()
     }
     return db.find({}).toArray()
   }
@@ -60,19 +60,5 @@ export class ProductModel {
     )
     if (!ok) return false
     return value
-  }
-  /* eslint-disable camelcase */
-
-  static async updateMany ({ input }) {
-    const { exchange_value } = input
-    const db = await connect()
-    const { acknowledged, modifiedCount } = await db.updateMany({},
-      [
-        { $set: { price_pen_non_igv: { $round: [{ $multiply: ['$price_non_igv', exchange_value] }, 4] } } },
-        { $set: { price_pen_igv: { $round: [{ $multiply: ['$price_igv', exchange_value] }, 4] } } }
-      ]
-    )
-    if (!acknowledged) return false
-    return modifiedCount
   }
 }

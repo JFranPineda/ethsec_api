@@ -1,4 +1,5 @@
 import { MoneyCatalogModel } from '../models/database/money_catalog.js'
+import { ProductModel } from '../models/database/products.js'
 import { validateMoneyCatalog, validatePartialMoneyCatalog } from '../schemas/money_catalog.js'
 
 export class MoneyCatalogController {
@@ -33,6 +34,8 @@ export class MoneyCatalogController {
     return res.json({ message: 'Money Type deleted' })
   }
 
+  /* eslint-disable camelcase */
+
   static async update (req, res) {
     const result = validatePartialMoneyCatalog(req.body)
     if (!result.success) {
@@ -40,6 +43,10 @@ export class MoneyCatalogController {
     }
     const { id } = req.params
     const updatedMoneyCatalog = await MoneyCatalogModel.update({ id, input: result.data })
+    const { exchange_value, currency } = updatedMoneyCatalog
+    if (exchange_value > 0 && currency && currency !== 'PEN') {
+      await ProductModel.updateMany({ input: result.data })
+    }
     return res.json(updatedMoneyCatalog)
   }
 }

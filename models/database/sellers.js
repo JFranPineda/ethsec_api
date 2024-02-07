@@ -50,11 +50,15 @@ export class SellerModel {
   static async update ({ id, input }) {
     const db = await connect()
     const objectId = new ObjectId(id)
-
-    const { ok, value } = await db.findOneAndUpdate({ _id: objectId }, { $set: input }, { returnNewDocument: true })
-
+    const { ok, value } = await db.findOneAndUpdate(
+      { _id: objectId },
+      { $set: input },
+      {
+        returnDocument: 'after',
+        includeResultMetadata: true
+      }
+    )
     if (!ok) return false
-
     return value
   }
 }
