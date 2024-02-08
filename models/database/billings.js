@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb'
 import { client } from './connect.js'
+import { calculateNewProducts, updateProductsByIgvAndMoney } from '../utils.js'
 
 async function connect () {
   try {
@@ -26,7 +27,7 @@ export class BillingModel {
     const db = await connect()
     if (ObjectId.isValid(id)) {
       const objectId = new ObjectId(id)
-      return db.findOne({ _id: objectId })
+      return await db.findOne({ _id: objectId })
     }
     return {}
   }
@@ -53,6 +54,77 @@ export class BillingModel {
     const { ok, value } = await db.findOneAndUpdate(
       { _id: objectId },
       { $set: input },
+      {
+        returnDocument: 'after',
+        includeResultMetadata: true
+      }
+    )
+    if (!ok) return false
+    return value
+  }
+  /* eslint-disable camelcase */
+
+  static async updateWithIgv ({ id, input }) {
+    const db = await connect()
+    const objectId = new ObjectId(id)
+    const billingToUpdate = await this.getById({ id })
+    const { products = [], money_type } = billingToUpdate
+    const { with_igv } = input
+    const newProducts = updateProductsByIgvAndMoney({ products, money_type, with_igv })
+
+    const { ok, value } = await db.findOneAndUpdate(
+      { _id: objectId },
+      [
+        { $set: { products: newProducts } },
+        { $set: { with_igv } },
+        { $set: { money_type } }
+      ],
+      {
+        returnDocument: 'after',
+        includeResultMetadata: true
+      }
+    )
+    if (!ok) return false
+    return value
+  }
+
+  static async updateMoneyType ({ id, input }) {
+    const db = await connect()
+    const objectId = new ObjectId(id)
+    const billingToUpdate = await this.getById({ id })
+    const { products = [], with_igv } = billingToUpdate
+    const { money_type } = input
+    const newProducts = updateProductsByIgvAndMoney({ products, money_type, with_igv })
+
+    const { ok, value } = await db.findOneAndUpdate(
+      { _id: objectId },
+      [
+        { $set: { products: newProducts } },
+        { $set: { with_igv } },
+        { $set: { money_type } }
+      ],
+      {
+        returnDocument: 'after',
+        includeResultMetadata: true
+      }
+    )
+    if (!ok) return false
+    return value
+  }
+
+  static async addProduct ({ id, input }) {
+    const db = await connect()
+    const objectId = new ObjectId(id)
+    const billingToUpdate = await this.getById({ id })
+    const { products = [], with_igv, money_type } = billingToUpdate
+    const { product } = input
+    const newProducts = calculateNewProducts({ products, with_igv, money_type, product })
+    console.log('newProducts: ', newProducts)
+    const { ok, value } = await db.findOneAndUpdate(
+      { _id: objectId },
+      [
+        { $set: { products: newProducts } }
+      ],
       {
         returnDocument: 'after',
         includeResultMetadata: true

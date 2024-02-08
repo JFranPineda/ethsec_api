@@ -10,6 +10,10 @@ const productInfoSchema = z.object({
   }),
   reserved_quantity: z.number().int().min(0).max(1000).default(1),
   unit_price: z.number().min(0).max(99999).default(0),
+  price_non_igv: z.number().min(0).max(99999).default(0),
+  price_igv: z.number().min(0).max(99999).default(0),
+  price_pen_non_igv: z.number().min(0).max(99999).default(0),
+  price_pen_igv: z.number().min(0).max(99999).default(0),
   total: z.number().min(0).max(99999).default(0)
 })
 
@@ -54,4 +58,8 @@ export function validateBilling (input) {
 
 export function validatePartialBilling (input) {
   return billingSchema.partial().safeParse(input)
+}
+
+export function validatePartialProductInfo (input) {
+  return productInfoSchema.partial().safeParse(input)
 }

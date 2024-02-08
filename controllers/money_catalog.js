@@ -43,10 +43,15 @@ export class MoneyCatalogController {
     }
     const { id } = req.params
     const updatedMoneyCatalog = await MoneyCatalogModel.update({ id, input: result.data })
-    const { exchange_value, currency } = updatedMoneyCatalog
-    if (exchange_value > 0 && currency && currency !== 'PEN') {
-      await ProductModel.updateMany({ input: result.data })
-    }
+    this.updateExchangeValue(updatedMoneyCatalog, result.data)
     return res.json(updatedMoneyCatalog)
+  }
+
+  static async updateExchangeValue (moneyData, insertedData) {
+    const { exchange_value = 0 } = insertedData
+    const { currency } = moneyData
+    if (exchange_value > 0 && currency && currency !== 'PEN') {
+      await ProductModel.updateMany({ input: insertedData })
+    }
   }
 }

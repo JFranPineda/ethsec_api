@@ -12,3 +12,9 @@ billingsRouter.post('/', BillingController.create)
 billingsRouter.delete('/:id', BillingController.delete)
 
 billingsRouter.patch('/:id', BillingController.update)
+
+billingsRouter.patch('/:id/updateWithIgv', BillingController.updateWithIgv)
+
+billingsRouter.patch('/:id/updateMoneyType', BillingController.updateMoneyType)
+
+billingsRouter.patch('/:id/addProduct', BillingController.addProduct)

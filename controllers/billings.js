@@ -1,5 +1,5 @@
 import { BillingModel } from '../models/database/billings.js'
-import { validateBilling, validatePartialBilling } from '../schemas/billings.js'
+import { validateBilling, validatePartialBilling, validatePartialProductInfo } from '../schemas/billings.js'
 
 export class BillingController {
   static async getAll (req, res) {
@@ -33,6 +33,7 @@ export class BillingController {
     }
     return res.json({ message: 'Billing deleted' })
   }
+  /* eslint-disable camelcase */
 
   static async update (req, res) {
     const result = validatePartialBilling(req.body)
@@ -42,5 +43,56 @@ export class BillingController {
     const { id } = req.params
     const updatedBilling = await BillingModel.update({ id, input: result.data })
     return res.json(updatedBilling)
+  }
+
+  static async updateWithIgv (req, res) {
+    const result = validatePartialBilling(req.body)
+    if (!result.success) {
+      return res.status(400).json({ error: JSON.parse(result.error.message) })
+    }
+    const { with_igv = null } = result.data
+    if (with_igv != null) {
+      const { id } = req.params
+      const updatedBillingWithIgv = await BillingModel.updateWithIgv({ id, input: result.data })
+      return res.json(updatedBillingWithIgv)
+    }
+    return res.status(400).json({ error: 'Error updating IGV in billing controller' })
+  }
+
+  static async updateMoneyType (req, res) {
+    const result = validatePartialBilling(req.body)
+    if (!result.success) {
+      return res.status(400).json({ error: JSON.parse(result.error.message) })
+    }
+    const { money_type = null } = result.data
+    if (money_type != null) {
+      const { id } = req.params
+      const updatedBillingMoneyType = await BillingModel.updateMoneyType({ id, input: result.data })
+      return res.json(updatedBillingMoneyType)
+    }
+    return res.status(400).json({ error: 'Error updating money type in billing controller' })
+  }
+
+  static async addProduct (req, res) {
+    const reqProduct = req.body && req.body.product
+    const result = validatePartialBilling(req.body)
+    const resultProduct = validatePartialProductInfo(reqProduct)
+    if (!result.success) {
+      return res.status(400).json({ error: JSON.parse(result.error.message) })
+    }
+    if (!resultProduct.success) {
+      return res.status(400).json({ error: JSON.parse(resultProduct.error.message) })
+    }
+    const product = resultProduct.data
+    if (product) {
+      const { id } = req.params
+      const input = {
+        ...result.data,
+        product
+      }
+      const updatedBillingProducts = await BillingModel.addProduct({ id, input })
+      return res.json(updatedBillingProducts)
+    }
+    return res.status(400).json({ error: 'Error updating products in billing controller' })
   }
 }
