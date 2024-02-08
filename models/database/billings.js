@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb'
 import { client } from './connect.js'
-import { calculateNewProducts, updateProductsByIgvAndMoney } from '../utils.js'
+import { calculateBillingAmounts, calculateNewProducts, deleteBillingProduct, updateProductQuantity, updateProductsByIgvAndMoney } from '../utils.js'
 
 async function connect () {
   try {
@@ -71,10 +71,11 @@ export class BillingModel {
     const { products = [], money_type } = billingToUpdate
     const { with_igv } = input
     const newProducts = updateProductsByIgvAndMoney({ products, money_type, with_igv })
-
+    const billingAmounts = calculateBillingAmounts({ products: newProducts, with_igv })
     const { ok, value } = await db.findOneAndUpdate(
       { _id: objectId },
       [
+        { $set: billingAmounts },
         { $set: { products: newProducts } },
         { $set: { with_igv } },
         { $set: { money_type } }
@@ -95,10 +96,11 @@ export class BillingModel {
     const { products = [], with_igv } = billingToUpdate
     const { money_type } = input
     const newProducts = updateProductsByIgvAndMoney({ products, money_type, with_igv })
-
+    const billingAmounts = calculateBillingAmounts({ products: newProducts, with_igv })
     const { ok, value } = await db.findOneAndUpdate(
       { _id: objectId },
       [
+        { $set: billingAmounts },
         { $set: { products: newProducts } },
         { $set: { with_igv } },
         { $set: { money_type } }
@@ -119,10 +121,58 @@ export class BillingModel {
     const { products = [], with_igv, money_type } = billingToUpdate
     const { product } = input
     const newProducts = calculateNewProducts({ products, with_igv, money_type, product })
-    console.log('newProducts: ', newProducts)
+    const billingAmounts = calculateBillingAmounts({ products: newProducts, with_igv })
     const { ok, value } = await db.findOneAndUpdate(
       { _id: objectId },
       [
+        { $set: billingAmounts },
+        { $set: { products: newProducts } }
+      ],
+      {
+        returnDocument: 'after',
+        includeResultMetadata: true
+      }
+    )
+    if (!ok) return false
+    return value
+  }
+
+  static async modifyProductQuantity ({ id, input }) {
+    const db = await connect()
+    const objectId = new ObjectId(id)
+    const billingToUpdate = await this.getById({ id })
+    const { products = [], with_igv } = billingToUpdate
+    const { product } = input
+    const newProducts = updateProductQuantity({ products, product })
+    const billingAmounts = calculateBillingAmounts({ products: newProducts, with_igv })
+    const { ok, value } = await db.findOneAndUpdate(
+      { _id: objectId },
+      [
+        { $set: billingAmounts },
+        { $set: { products: newProducts } }
+      ],
+      {
+        returnDocument: 'after',
+        includeResultMetadata: true
+      }
+    )
+    if (!ok) return false
+    return value
+  }
+
+  static async deleteProduct ({ id, input }) {
+    const db = await connect()
+    const objectId = new ObjectId(id)
+    const billingToUpdate = await this.getById({ id })
+    const { products = [], with_igv } = billingToUpdate
+    const { product } = input
+    const newProducts = deleteBillingProduct({ products, product })
+    const billingAmounts = calculateBillingAmounts({ products: newProducts, with_igv })
+    if (newProducts.length === products.length) return false
+    const { ok, value } = await db.findOneAndUpdate(
+      { _id: objectId },
+      [
+        { $set: billingAmounts },
         { $set: { products: newProducts } }
       ],
       {

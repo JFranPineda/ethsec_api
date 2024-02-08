@@ -18,3 +18,7 @@ billingsRouter.patch('/:id/updateWithIgv', BillingController.updateWithIgv)
 billingsRouter.patch('/:id/updateMoneyType', BillingController.updateMoneyType)
 
 billingsRouter.patch('/:id/addProduct', BillingController.addProduct)
+
+billingsRouter.patch('/:id/modifyProductQuantity', BillingController.modifyProductQuantity)
+
+billingsRouter.patch('/:id/deleteProduct', BillingController.deleteProduct)

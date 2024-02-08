@@ -2,19 +2,19 @@ import z from 'zod'
 
 const productInfoSchema = z.object({
   _id: z.string(),
-  item: z.string(),
+  item: z.number().int().min(1),
   description: z.string(),
   model: z.string({
     invalid_type_error: 'Model must be a string',
     required_error: 'Model is required.'
   }),
   reserved_quantity: z.number().int().min(0).max(1000).default(1),
-  unit_price: z.number().min(0).max(99999).default(0),
+  unit_price: z.number().min(0).max(99999).default(0).optional(),
   price_non_igv: z.number().min(0).max(99999).default(0),
   price_igv: z.number().min(0).max(99999).default(0),
   price_pen_non_igv: z.number().min(0).max(99999).default(0),
   price_pen_igv: z.number().min(0).max(99999).default(0),
-  total: z.number().min(0).max(99999).default(0)
+  total: z.number().min(0).max(99999).default(0).optional()
 })
 
 const billingSchema = z.object({
@@ -58,6 +58,10 @@ export function validateBilling (input) {
 
 export function validatePartialBilling (input) {
   return billingSchema.partial().safeParse(input)
+}
+
+export function validateProductInfo (input) {
+  return productInfoSchema.safeParse(input)
 }
 
 export function validatePartialProductInfo (input) {

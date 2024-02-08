@@ -1,5 +1,5 @@
 import { BillingModel } from '../models/database/billings.js'
-import { validateBilling, validatePartialBilling, validatePartialProductInfo } from '../schemas/billings.js'
+import { validateBilling, validatePartialBilling, validateProductInfo, validatePartialProductInfo } from '../schemas/billings.js'
 
 export class BillingController {
   static async getAll (req, res) {
@@ -76,7 +76,7 @@ export class BillingController {
   static async addProduct (req, res) {
     const reqProduct = req.body && req.body.product
     const result = validatePartialBilling(req.body)
-    const resultProduct = validatePartialProductInfo(reqProduct)
+    const resultProduct = validateProductInfo(reqProduct)
     if (!result.success) {
       return res.status(400).json({ error: JSON.parse(result.error.message) })
     }
@@ -93,6 +93,55 @@ export class BillingController {
       const updatedBillingProducts = await BillingModel.addProduct({ id, input })
       return res.json(updatedBillingProducts)
     }
+    return res.status(400).json({ error: 'Error creating products in billing controller' })
+  }
+
+  static async modifyProductQuantity (req, res) {
+    const reqProduct = req.body && req.body.product
+    const result = validatePartialBilling(req.body)
+    const resultProduct = validatePartialProductInfo(reqProduct)
+    if (!result.success) {
+      return res.status(400).json({ error: JSON.parse(result.error.message) })
+    }
+    if (!resultProduct.success) {
+      return res.status(400).json({ error: JSON.parse(resultProduct.error.message) })
+    }
+    const product = resultProduct.data
+    if (product) {
+      const { id } = req.params
+      const input = {
+        ...result.data,
+        product
+      }
+      const updatedBillingProducts = await BillingModel.modifyProductQuantity({ id, input })
+      return res.json(updatedBillingProducts)
+    }
     return res.status(400).json({ error: 'Error updating products in billing controller' })
+  }
+
+  static async deleteProduct (req, res) {
+    const reqProduct = req.body && req.body.product
+    const result = validatePartialBilling(req.body)
+    const resultProduct = validatePartialProductInfo(reqProduct)
+    if (!result.success) {
+      return res.status(400).json({ error: JSON.parse(result.error.message) })
+    }
+    if (!resultProduct.success) {
+      return res.status(400).json({ error: JSON.parse(resultProduct.error.message) })
+    }
+    const product = resultProduct.data
+    if (product) {
+      const { id } = req.params
+      const input = {
+        ...result.data,
+        product
+      }
+      const resultDelete = await BillingModel.deleteProduct({ id, input })
+      if (!resultDelete) {
+        return res.status(404).json({ message: 'Billing product not found' })
+      }
+      return res.json({ message: 'Billing product deleted' })
+    }
+    return res.status(400).json({ error: 'Error deleting products in billing controller' })
   }
 }

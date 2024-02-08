@@ -18,17 +18,17 @@ PATCH http://localhost:3000/billings/65c4122ca6f997f2503b27d7/addProduct
 Content-Type: application/json
 
 {
-  "product":{
-    "description": "KIT PRO 01 Hub 2 Plus, 01 MotionProtect, 01 MotionCam, 01 DoorProtect, 01 SpaceControl, 01 HomeSiren",
-    "model":"Kit 02",
-    "price_igv":820,
-    "price_non_igv":694.92,
-    "price_pen_igv":3173.4,
-    "price_pen_non_igv":2689.3404,
-    "reserved_quantity":12,
-    "unit_price":150,
-    "_id":"65a95bf2f2cbf2fe9f094084",
-    "item":"5"
+  "product":  {
+    "_id": "65bba8591d30de03dd91a5b6",
+    "model": "MotionProtect",
+    "description": "SENSOR DE MOVIMIENTO SIN CAMARA Detección IR e inalámbrico de movimiento",
+    "price_non_igv": 58.47,
+    "price_igv": 69,
+    "price_pen_non_igv": 226.2789,
+    "price_pen_igv": 267.03,
+    "reserved_quantity":10,
+    "unit_price":226.2789,
+    "item":2
   },
   "with_igv":false,
   "money_type": "PEN",
@@ -36,7 +36,37 @@ Content-Type: application/json
 }
 
 ###
-PATCH http://localhost:3000/billings/65c4122ca6f997f2503b27d7/updateMoneyType
+PATCH http://localhost:3000/billings/65c4122ca6f997f2503b27d7/modifyProductQuantity
+Content-Type: application/json
+
+{
+  "product":  {
+    "_id": "65bba8591d30de03dd91a5b6",
+    "reserved_quantity":10,
+    "unit_price":226.2789,
+    "item":2
+  },
+  "with_igv":false,
+  "money_type": "PEN",
+  "_id":"65c4122ca6f997f2503b27d7"
+}
+
+###
+PATCH http://localhost:3000/billings/65c4122ca6f997f2503b27d7/deleteProduct
+Content-Type: application/json
+
+{
+  "product":  {
+    "_id": "65bba8591d30de03dd91a5b6",
+    "item":3
+  },
+  "with_igv":false,
+  "money_type": "PEN",
+  "_id":"65c4122ca6f997f2503b27d7"
+}
+
+###
+PATCH http://localhost:3000/billings/65c4122ca6f997f2503b27d7/updateWithIgv
 Content-Type: application/json
 
 {
@@ -50,7 +80,7 @@ Content-Type: application/json
       "price_pen_non_igv":3223.73,
       "unit_price":150,
       "_id":"65ba7d57d57146aaf06d57d4",
-      "item":"1"
+      "item":1
     }
   ],
   "with_igv":false,
