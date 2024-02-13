@@ -33,8 +33,15 @@ export class MoneyCatalogController {
     }
     return res.json({ message: 'Money Type deleted' })
   }
-
   /* eslint-disable camelcase */
+
+  static async updateExchangeValue (moneyData, insertedData) {
+    const { exchange_value = 0 } = insertedData
+    const { currency } = moneyData
+    if (exchange_value > 0 && currency && currency !== 'PEN') {
+      await ProductModel.updateMany({ input: insertedData })
+    }
+  }
 
   static async update (req, res) {
     const result = validatePartialMoneyCatalog(req.body)
@@ -43,15 +50,7 @@ export class MoneyCatalogController {
     }
     const { id } = req.params
     const updatedMoneyCatalog = await MoneyCatalogModel.update({ id, input: result.data })
-    this.updateExchangeValue(updatedMoneyCatalog, result.data)
+    MoneyCatalogController.updateExchangeValue(updatedMoneyCatalog, result.data)
     return res.json(updatedMoneyCatalog)
-  }
-
-  static async updateExchangeValue (moneyData, insertedData) {
-    const { exchange_value = 0 } = insertedData
-    const { currency } = moneyData
-    if (exchange_value > 0 && currency && currency !== 'PEN') {
-      await ProductModel.updateMany({ input: insertedData })
-    }
   }
 }
