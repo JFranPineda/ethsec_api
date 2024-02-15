@@ -43,29 +43,36 @@ export class BillingModel {
 
   static async delete ({ id }) {
     const db = await connect()
-    const objectId = new ObjectId(id)
-    const { deletedCount } = await db.deleteOne({ _id: objectId })
-    return deletedCount > 0
+    if (ObjectId.isValid(id)) {
+      const objectId = new ObjectId(id)
+      const { deletedCount } = await db.deleteOne({ _id: objectId })
+      return deletedCount > 0
+    }
+    return false
   }
 
   static async update ({ id, input }) {
     const db = await connect()
-    const objectId = new ObjectId(id)
-    const { ok, value } = await db.findOneAndUpdate(
-      { _id: objectId },
-      { $set: input },
-      {
-        returnDocument: 'after',
-        includeResultMetadata: true
-      }
-    )
-    if (!ok) return false
-    return value
+    if (ObjectId.isValid(id)) {
+      const objectId = new ObjectId(id)
+      const { ok, value } = await db.findOneAndUpdate(
+        { _id: objectId },
+        { $set: input },
+        {
+          returnDocument: 'after',
+          includeResultMetadata: true
+        }
+      )
+      if (!ok) return false
+      return value
+    }
+    return false
   }
   /* eslint-disable camelcase */
 
   static async updateWithIgv ({ id, input }) {
     const db = await connect()
+    if (!ObjectId.isValid(id)) return false
     const objectId = new ObjectId(id)
     const billingToUpdate = await this.getById({ id })
     const { products = [], money_type } = billingToUpdate
@@ -91,6 +98,7 @@ export class BillingModel {
 
   static async updateMoneyType ({ id, input }) {
     const db = await connect()
+    if (!ObjectId.isValid(id)) return false
     const objectId = new ObjectId(id)
     const billingToUpdate = await this.getById({ id })
     const { products = [], with_igv } = billingToUpdate
@@ -116,6 +124,7 @@ export class BillingModel {
 
   static async addProduct ({ id, input }) {
     const db = await connect()
+    if (!ObjectId.isValid(id)) return false
     const objectId = new ObjectId(id)
     const billingToUpdate = await this.getById({ id })
     const { products = [], with_igv, money_type } = billingToUpdate
@@ -139,6 +148,7 @@ export class BillingModel {
 
   static async modifyProductQuantity ({ id, input }) {
     const db = await connect()
+    if (!ObjectId.isValid(id)) return false
     const objectId = new ObjectId(id)
     const billingToUpdate = await this.getById({ id })
     const { products = [], with_igv } = billingToUpdate
@@ -162,6 +172,7 @@ export class BillingModel {
 
   static async deleteProduct ({ id, input }) {
     const db = await connect()
+    if (!ObjectId.isValid(id)) return false
     const objectId = new ObjectId(id)
     const billingToUpdate = await this.getById({ id })
     const { products = [], with_igv } = billingToUpdate

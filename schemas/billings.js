@@ -22,14 +22,18 @@ const billingSchema = z.object({
     invalid_type_error: 'Please select a valid client',
     required_error: 'Client ID is required.'
   }),
-  company_id: z.string({
+  company_name: z.string({
     invalid_type_error: 'Please select a valid company',
-    required_error: 'Company ID is required.'
+    required_error: 'Company name is required.'
   }),
   billing_number: z.string(),
   seller_id: z.string({
     invalid_type_error: 'Please select a valid seller',
     required_error: 'Seller ID is required.'
+  }),
+  seller_name: z.string({
+    invalid_type_error: 'Please select a valid seller',
+    required_error: 'Seller name is required.'
   }),
   money_type: z.string({
     invalid_type_error: 'Please select a valid money type',

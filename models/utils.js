@@ -9,6 +9,8 @@ const IGV_VALUE_PRM = 0.18
 
 const VALID_MONEY_TYPE = ['PEN', 'USD']
 
+const DEFAULT_RESERVED_QUANTITY = 1
+
 const getUpdatedProduct = (product, item) => {
   const newItem = product.item < item ? product.item : product.item - 1
   return { ...product, item: newItem }
@@ -40,15 +42,15 @@ export const calculateNewProducts = ({ products = [], money_type, with_igv, prod
   const priceLabel = money_type + '_' + with_igv.toString()
   const newPriceField = PRICE_LABELS_DICTIONARY[priceLabel]
   const unit_price = product[newPriceField]
-  const total = +(product.reserved_quantity * unit_price).toFixed(4)
-  const newProducts = [...products, { ...product, total, unit_price }]
+  const total = +(DEFAULT_RESERVED_QUANTITY * unit_price).toFixed(4)
+  const newProducts = [...products, { ...product, total, unit_price, reserved_quantity: DEFAULT_RESERVED_QUANTITY }]
   return newProducts
 }
 
 export const updateProductQuantity = ({ products = [], product }) => {
   if (!products) return []
   if (!product) return []
-  const { _id, item, reserved_quantity } = product
+  const { _id, item, reserved_quantity = 1 } = product
   const newProducts = products.map((existProd) => {
     if (existProd._id !== _id || existProd.item !== item) return { ...existProd }
     const { unit_price } = existProd

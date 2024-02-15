@@ -30,8 +30,6 @@ Content-Type: application/json
     "unit_price":226.2789,
     "item":2
   },
-  "with_igv":false,
-  "money_type": "PEN",
   "_id":"65c4122ca6f997f2503b27d7"
 }
 
@@ -46,8 +44,6 @@ Content-Type: application/json
     "unit_price":226.2789,
     "item":2
   },
-  "with_igv":false,
-  "money_type": "PEN",
   "_id":"65c4122ca6f997f2503b27d7"
 }
 
@@ -88,12 +84,16 @@ Content-Type: application/json
   "_id":"65c4122ca6f997f2503b27d7"
 }
 
-### Borrar una película
-PATCH http://localhost:3000/money_catalog/65bd29e614a478e153acb027
+### Actualizar una cotización
+PATCH http://localhost:3000/billings/65c4122ca6f997f2503b27d7
 Content-Type: application/json
 
 {
-  "exchange_value": 3.87
+  "company_name": "A REPRESENTACIONES ELRL.",
+  "client_id": "65b2d9f7044ee3952ee13dd1",
+  "seller_id": "65b2ff3b044ee3952ef68cfd",
+  "seller_name": "Leyva Perochena",
+  "expiration_time": 15
 }
 
 ### Actualizar una película
