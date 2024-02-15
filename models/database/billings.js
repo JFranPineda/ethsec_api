@@ -75,7 +75,7 @@ export class BillingModel {
     if (!ObjectId.isValid(id)) return false
     const objectId = new ObjectId(id)
     const billingToUpdate = await this.getById({ id })
-    const { products = [], money_type } = billingToUpdate
+    const { products = [], money_type = 'PEN' } = billingToUpdate
     const { with_igv } = input
     const newProducts = updateProductsByIgvAndMoney({ products, money_type, with_igv })
     const billingAmounts = calculateBillingAmounts({ products: newProducts, with_igv })
@@ -101,7 +101,7 @@ export class BillingModel {
     if (!ObjectId.isValid(id)) return false
     const objectId = new ObjectId(id)
     const billingToUpdate = await this.getById({ id })
-    const { products = [], with_igv } = billingToUpdate
+    const { products = [], with_igv = false } = billingToUpdate
     const { money_type } = input
     const newProducts = updateProductsByIgvAndMoney({ products, money_type, with_igv })
     const billingAmounts = calculateBillingAmounts({ products: newProducts, with_igv })
