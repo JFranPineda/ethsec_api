@@ -144,4 +144,15 @@ export class BillingController {
     }
     return res.status(400).json({ error: 'Error deleting products in billing controller' })
   }
+
+  static async generatePdf (req, res) {
+    const { id } = req.params
+    const billing = await BillingModel.getById({ id })
+    if (!billing) {
+      res.status(400).json({ error: 'Billing not found' })
+    }
+    const pdfBase64 = await BillingModel.generatePdf({ input: billing })
+    if (!pdfBase64) return res.status(400).json({ error: 'Error creating PDF in billing controller' })
+    res.json({ pdf: pdfBase64 })
+  }
 }

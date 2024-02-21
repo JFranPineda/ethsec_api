@@ -22,3 +22,5 @@ billingsRouter.patch('/:id/addProduct', BillingController.addProduct)
 billingsRouter.patch('/:id/modifyProductQuantity', BillingController.modifyProductQuantity)
 
 billingsRouter.patch('/:id/deleteProduct', BillingController.deleteProduct)
+
+billingsRouter.get('/:id/generatePdf', BillingController.generatePdf)

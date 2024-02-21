@@ -15,6 +15,17 @@ const getUpdatedProduct = (product, item) => {
   const newItem = product.item < item ? product.item : product.item - 1
   return { ...product, item: newItem }
 }
+
+export const COLUMNS_WIDTH = [30, 300, 50, 50, 50, 75]
+
+const getTextWidth = (text) => {
+  return text.length * 5.5
+}
+
+const getPosX = (i) => {
+  const x = COLUMNS_WIDTH.slice(0, i).reduce((acc, curr) => acc + curr, 40)
+  return x
+}
 /* eslint-disable camelcase */
 
 export const updateProductsByIgvAndMoney = ({ products = [], money_type, with_igv }) => {
@@ -87,4 +98,32 @@ export const calculateBillingAmounts = ({ products = [], with_igv }) => {
     igv_amount: +(igv_amount).toFixed(4),
     total_amount: +(total_amount).toFixed(4)
   }
+}
+
+export const wrapText = (text, width) => {
+  const words = text.split(' ')
+  const lines = []
+  let currentLine = ''
+  words.forEach(word => {
+    const potentialLine = currentLine.length === 0 ? word : `${currentLine} ${word}`
+    if (getTextWidth(potentialLine) <= width) {
+      currentLine = potentialLine
+    } else {
+      lines.push(currentLine)
+      currentLine = word
+    }
+  })
+  if (currentLine.length > 0) {
+    lines.push(currentLine)
+  }
+  return lines
+}
+
+export const printCellValue = ({ doc, index, value, posY, posX = getPosX(index) }) => {
+  doc.text(value, posX, posY, { width: COLUMNS_WIDTH[index], align: 'left' })
+}
+
+export const getWrappedLines = ({ value, colPos = 0 }) => {
+  const wrappedLines = wrapText(value, COLUMNS_WIDTH[colPos])
+  return wrappedLines
 }
