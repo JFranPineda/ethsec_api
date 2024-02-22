@@ -4,11 +4,15 @@ import {
   calculateBillingAmounts,
   calculateNewProducts,
   deleteBillingProduct,
-  getWrappedLines,
-  printCellValue,
   updateProductQuantity,
-  updateProductsByIgvAndMoney,
+  updateProductsByIgvAndMoney
 } from '../utils.js'
+import {
+  generateBillingBottom,
+  generateBillingTop,
+  generateProductsBillingTable,
+  setPosY
+} from '../pdfUtils.js'
 import PDFDocument from 'pdfkit'
 
 async function connect () {
@@ -204,46 +208,21 @@ export class BillingModel {
     return value
   }
 
-  static async generatePdf ({ input }) {
+  static async generatePdf ({ billing, client, seller }) {
     return new Promise((resolve, reject) => {
-      const { products = [] } = input
-      const doc = new PDFDocument({ size: 'A4' })
-      const headers = ['ITEM', 'DESCRIPCIÓN', 'MODELO', 'CANT.', 'PRECIO UNIT.', 'TOTAL']
-      let y = 50
-      doc.font('Helvetica-Bold').fontSize(10)
-      headers.forEach((header, i) => {
-        printCellValue({ doc, index: i, value: header, posY: y })
-      })
-      doc.font('Helvetica').fontSize(10)
-      y += 30
-      products.forEach(product => {
-        const values = [
-          product.item.toString(),
-          '',
-          product.model,
-          product.reserved_quantity.toString(),
-          product.unit_price.toFixed(2),
-          product.total.toFixed(2)
-        ]
-        const descriptionLines = getWrappedLines({ value: product.description, colPos: 1 })
-        values.forEach((value, i) => {
-          if (i !== 1) {
-            printCellValue({ doc, index: i, value, posY: y })
-          } else {
-            descriptionLines.forEach((line, index) => {
-              const newPosY = y + index * 20
-              printCellValue({ doc, index: i, value: line, posY: newPosY })
-            })
-          }
-        })
-        y += (20 * Math.max(descriptionLines.length, 1))
-      })
+      const { products = [] } = billing
+      const doc = new PDFDocument({ size: 'A4', margins: { top: 40, left: 30, bottom: 40, right: 30 } })
+      const currentY = 50
+      setPosY(currentY)
+      generateBillingTop({ doc, client, seller })
+      generateProductsBillingTable({ doc, products })
+      generateBillingBottom({ doc, billing })
       const buffer = []
       doc.on('data', (chunk) => {
         buffer.push(chunk)
       })
       doc.on('end', () => {
-        const pdfBuffer = Buffer.concat(buffer);
+        const pdfBuffer = Buffer.concat(buffer)
         const pdfBase64 = pdfBuffer.toString('base64')
         resolve(pdfBase64)
       })

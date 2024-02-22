@@ -1,4 +1,6 @@
 import { BillingModel } from '../models/database/billings.js'
+import { ClientModel } from '../models/database/clients.js'
+import { SellerModel } from '../models/database/sellers.js'
 import { validateBilling, validatePartialBilling, validateProductInfo, validatePartialProductInfo } from '../schemas/billings.js'
 
 export class BillingController {
@@ -147,11 +149,25 @@ export class BillingController {
 
   static async generatePdf (req, res) {
     const { id } = req.params
+    const input = {
+      billing: {},
+      client: {},
+      seller: {}
+    }
     const billing = await BillingModel.getById({ id })
+    const { client_id, seller_id } = billing
     if (!billing) {
       res.status(400).json({ error: 'Billing not found' })
     }
-    const pdfBase64 = await BillingModel.generatePdf({ input: billing })
+    input.billing = billing
+
+    if (client_id) {
+      input.client = await ClientModel.getById({ id: billing.client_id })
+    }
+    if (seller_id) {
+      input.seller = await SellerModel.getById({ id: billing.seller_id })
+    }
+    const pdfBase64 = await BillingModel.generatePdf({ ...input })
     if (!pdfBase64) return res.status(400).json({ error: 'Error creating PDF in billing controller' })
     res.json({ pdf: pdfBase64 })
   }
