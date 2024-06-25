@@ -39,7 +39,8 @@ const wrapText = (text, maxWidth) => {
   return lines
 }
 
-const printCellValue = ({ doc, index, value, posY, posX = calculatePosX(index) }) => {
+const printCellValue = ({ doc, index, value, posY }) => {
+  const posX = calculatePosX(index)
   doc.text(value, posX, posY, { width: COLUMNS_WIDTH[index], align: 'left' })
 }
 
@@ -47,7 +48,12 @@ const printTextValue = ({ doc, value, posY, posX = 30, width = 330 }) => {
   doc.text(value, posX, posY, { width, align: 'left' })
 }
 
-const writeBillingsHeaders = ({ doc, posY }) => {
+const printCenterTextValue = ({ doc, value, posY, posX = 30, width = 330 }) => {
+  doc.text(value, posX, posY, { width, align: 'center' })
+}
+
+const writeBillingsHeaders = ({ doc }) => {
+  let posY = getPosY()
   doc.font('Helvetica-Bold').fontSize(10)
   BILLINGS_HEADERS.forEach((header, i) => {
     printCellValue({ doc, index: i, value: header, posY })
@@ -57,33 +63,37 @@ const writeBillingsHeaders = ({ doc, posY }) => {
   setPosY(posY)
 }
 
-const checkAndAddPage = ({ doc, posY, additionalHeight = 0 }) => {
+const checkBottomAndAddHeaders = ({ doc, additionalHeight = 0 }) => {
+  let posY = getPosY()
   const pageHeight = doc.page.height - doc.page.margins.top - doc.page.margins.bottom
   doc.font('Helvetica').fontSize(10)
   if (posY + additionalHeight > pageHeight) {
     doc.addPage()
-    writeBillingsHeaders({ doc, posY: 50 })
+    posY = 50
+    setPosY(posY)
+    writeBillingsHeaders({ doc })
   } else {
     setPosY(posY)
   }
 }
 
-const checkBottomAndAddPage = ({ doc, posY, additionalHeight = 0 }) => {
+const checkBottomAndAddPage = ({ doc, additionalHeight = 0 }) => {
+  let posY = getPosY()
   const pageHeight = doc.page.height - doc.page.margins.top - doc.page.margins.bottom - 1.89
   doc.font('Helvetica').fontSize(10)
   if (posY + additionalHeight > pageHeight) {
     doc.addPage()
-    posY = 30
+    posY = 50
     setPosY(posY)
   }
 }
 
-const printFormData = ({ doc, title, values, posX, posY, boxWidth = 300 }) => {
+const printFormData = ({ doc, title, values, posX, posY = getPosY(), boxWidth = 300 }) => {
   const boxPadding = 10
   const lineHeight = 20
-  const boxRounded = 10
+  const boxRounded = 5
   const fillTitleColor = '#2F75B5'
-  const fillFormColor = '#FFFCF6'
+  const fillFormColor = '#FFFFFF'
   const borderColor = '#204F7A'
   const textTitleColor = '#FFFFFF'
   const textFormColor = '#000000'
@@ -96,8 +106,8 @@ const printFormData = ({ doc, title, values, posX, posY, boxWidth = 300 }) => {
 
   posY = posY + boxPadding
 
-  doc.font('Helvetica-Bold').fontSize(10).fillColor(textTitleColor)
-  printTextValue({ doc, value: title, posY, posX, width: boxWidth })
+  doc.font('Helvetica-Bold').fontSize(12).fillColor(textTitleColor)
+  printCenterTextValue({ doc, value: title, posY, posX, width: boxWidth })
 
   posY = posY + lineHeight + boxPadding * 0.5
   boxHeight = (values.length - 1) * lineHeight + boxPadding * 2
@@ -145,12 +155,12 @@ const generateSellerForm = ({ doc, seller, posY }) => {
   printFormData({ doc, title: 'EMPRESA', values, posX: 350, posY, boxWidth: 200 })
 }
 
-const generateFinnancialInfo = ({ doc, posY }) => {
-  checkBottomAndAddPage({ doc, posY, additionalHeight: 120 })
-  posY = getPosY()
+const generateFinnancialInfo = ({ doc }) => {
+  checkBottomAndAddPage({ doc, additionalHeight: 120 })
+  let posY = getPosY()
   doc.font('Helvetica-Bold').fontSize(10)
   printTextValue({ doc, value: 'CONDICIONES COMERCIALES', posY })
-  posY += 20
+  setPosY(posY + 20)
   const banbifAccount = {
     bank_name: 'Banco Interamericano de Finanzas – BanBif',
     usd_account: '008002633920',
@@ -158,10 +168,8 @@ const generateFinnancialInfo = ({ doc, posY }) => {
     pen_account: '007000471824',
     cci_pen: '038 302 107000471824 65'
   }
-  printBankInformation({ doc, data: banbifAccount, posY })
-  posY = getPosY()
-  checkBottomAndAddPage({ doc, posY, additionalHeight: 120 })
-  posY = getPosY()
+  printBankInformation({ doc, data: banbifAccount })
+  checkBottomAndAddPage({ doc, additionalHeight: 120 })
 
   const interbankAccount = {
     bank_name: 'Banco Interbank',
@@ -170,16 +178,17 @@ const generateFinnancialInfo = ({ doc, posY }) => {
     pen_account: '2003003485534',
     cci_pen: '003 200 003003485534 33'
   }
-  posY = getPosY()
-  printBankInformation({ doc, data: interbankAccount, posY })
-  checkBottomAndAddPage({ doc, posY, additionalHeight: 120 })
+  printBankInformation({ doc, data: interbankAccount })
+  checkBottomAndAddPage({ doc, additionalHeight: 120 })
   posY = getPosY()
   doc.font('Helvetica-Bold').fontSize(10)
   const closingSentence = '¡Gracias por su confianza!'
   printTextValue({ doc, value: closingSentence, posY, width: 600 })
+  setPosY(posY + 20)
 }
 
-const printBankInformation = ({ doc, data, posY }) => {
+const printBankInformation = ({ doc, data }) => {
+  let posY = getPosY()
   const { bank_name, usd_account, cci_usd, pen_account, cci_pen } = data
   doc.font('Helvetica-Bold').fontSize(10)
   printTextValue({ doc, value: `Institución Financiera: ${bank_name}`, posY, width: 600 })
@@ -204,23 +213,35 @@ const printBankInformation = ({ doc, data, posY }) => {
 }
 
 const generateBillingTop = ({ doc, client = {}, seller = {} }) => {
+  const posY = getPosY()
+  generateClientForm({ doc, client, posY })
+  generateSellerForm({ doc, seller, posY })
   let currentY = getPosY()
-  generateClientForm({ doc, client, posY: currentY })
-  generateSellerForm({ doc, seller, posY: currentY })
-  currentY = getPosY() + 20
-  setPosY(currentY)
-  // Draw horizontal line
   doc.moveTo(30, currentY).lineTo(550, currentY).stroke()
+  currentY += 10
+  setPosY(currentY)
+}
+
+const writeBillingTitle = ({ doc, billing = {} }) => {
+  let currentY = getPosY()
+  const { billing_number = 0 } = billing
+  const billingTitle = `COTIZACIÓN NRO. ${billing_number}`
+  doc.font('Helvetica-Bold').fontSize(12).text(billingTitle, 0, currentY, { align: 'center' })
   currentY += 20
-  // Add Quotation number and date
-  doc.font('Helvetica-Bold').fontSize(12).text('COTIZACIÓN NRO. 000056', 0, currentY, { align: 'center' })
-  currentY += 20
-  doc.font('Helvetica').fontSize(10).text('Emitido el: 24 de Junio de 2024', 0, currentY, { align: 'center' })
+
+  const currentDate = new Date()
+  const formattedDate = new Intl.DateTimeFormat('es-ES', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  }).format(currentDate)
+  const formattedDateText = `Emitido el: ${formattedDate.replace(' de ', ' de ')}`
+  doc.font('Helvetica').fontSize(10).text(formattedDateText, 0, currentY, { align: 'center' })
   currentY += 30
   setPosY(currentY)
 }
 
-const generateNotes = ({ doc, notes = '', posY }) => {
+const generateNotes = ({ doc, notes = '', posY = getPosY() }) => {
   doc.font('Helvetica-Bold').fontSize(10)
   printTextValue({ doc, value: 'NOTAS', posY })
   posY += 20
@@ -234,7 +255,7 @@ const generateNotes = ({ doc, notes = '', posY }) => {
   setPosY(maxPosY)
 }
 
-const generateBillingAmounts = ({ doc, billing, posY }) => {
+const generateBillingAmounts = ({ doc, billing, posY = getPosY() }) => {
   doc.font('Helvetica').fontSize(10)
   const { before_taxes_amount, igv_amount, total_amount } = billing
   const subTotalAmount = `SUBTOTAL: ${before_taxes_amount}`
@@ -249,7 +270,8 @@ const generateBillingAmounts = ({ doc, billing, posY }) => {
   setPosY(maxPosY)
 }
 
-const generateCommercialConditions = ({ doc, billing, posY }) => {
+const generateCommercialConditions = ({ doc, billing }) => {
+  let posY = getPosY()
   doc.font('Helvetica-Bold').fontSize(10)
   printTextValue({ doc, value: 'CONDICIONES COMERCIALES', posY })
   posY += 20
@@ -268,58 +290,69 @@ const generateCommercialConditions = ({ doc, billing, posY }) => {
   setPosY(maxPosY)
 }
 
-const generateTableRow = ({ doc, product, posY }) => {
+const generateTableRow = ({ doc, product }) => {
+  let posY = getPosY()
+  const initialPosY = getPosY()
   doc.font('Helvetica').fontSize(10)
-  const { description = '', model = '', quantity = 0, unit_price = 0, total = 0, item = 1 } = product
+  const { description = '', model = '', reserved_quantity = 0, unit_price = 0, total = 0, item = 1 } = product
   const columns = [
     item,
     description,
     model,
-    quantity,
+    reserved_quantity,
     unit_price.toFixed(2),
     total.toFixed(2)
   ]
   columns.forEach((value, i) => {
-    const textLines = i === 1 ? wrapText(value, COLUMNS_WIDTH[i]) : [value.toString()]
-    textLines.forEach((line, idx) => {
-      checkAndAddPage({ doc, posY, additionalHeight: 20 })
-      printCellValue({ doc, index: i, value: line, posY })
-      posY += idx === textLines.length - 1 ? 0 : 20
-    })
+    if (i === 1) {
+      const textLines = wrapText(value, COLUMNS_WIDTH[1])
+      textLines.forEach((line, idx) => {
+        checkBottomAndAddHeaders({ doc, additionalHeight: 20 })
+        printCellValue({ doc, index: 1, value: line, posY })
+        posY += idx === textLines.length - 1 ? 0 : 20
+      })
+    } else {
+      const textLine = value.toString()
+      printCellValue({ doc, index: i, value: textLine, posY: initialPosY })
+    }
   })
   posY += 20
   setPosY(posY)
 }
 
+const writeNotesAndAmounts = ({ doc, billing }) => {
+  let posY = getPosY()
+  const { notes = '' } = billing
+  generateNotes({ doc, notes, posY })
+  generateBillingAmounts({ doc, billing, posY })
+  posY = getPosY() + 20
+  setPosY(posY)
+}
+
 const generateBillingBottom = ({ doc, billing = {} }) => {
-  let currentY = getPosY()
-  checkBottomAndAddPage({ doc, posY: currentY, additionalHeight: 70 })
-  currentY = getPosY() + 20
-  const { notes } = billing
-  generateNotes({ doc, notes, posY: currentY })
-  generateBillingAmounts({ doc, billing, posY: currentY })
-  currentY = getPosY() + 20
-  setPosY(currentY)
-  checkBottomAndAddPage({ doc, posY: currentY, additionalHeight: 120 })
-  currentY = getPosY()
-  generateCommercialConditions({ doc, billing, posY: currentY })
-  currentY = getPosY() + 20
-  setPosY(currentY)
-  generateFinnancialInfo({ doc, posY: currentY })
+  checkBottomAndAddPage({ doc, additionalHeight: 70 })
+  writeNotesAndAmounts({ doc, billing })
+  checkBottomAndAddPage({ doc, additionalHeight: 120 })
+  generateCommercialConditions({ doc, billing })
+  generateFinnancialInfo({ doc })
+}
+
+const generateProductsTable = ({ doc, products }) => {
+  products.forEach((product, i) => {
+    product.item = i + 1
+    generateTableRow({ doc, product })
+  })
+  const posY = getPosY() + 20
+  setPosY(posY)
 }
 
 export const generatePDF = async ({ doc, client, billing, seller }) => {
   const { products = [] } = billing
-  const currentY = 50
-  setPosY(currentY)
+  const TOP_MARGIN = 50
+  setPosY(TOP_MARGIN)
   generateBillingTop({ doc, client, seller })
-  let posY = getPosY()
-  writeBillingsHeaders({ doc, posY })
-  posY = getPosY()
-  products.forEach((product, i) => {
-    product.item = i + 1
-    generateTableRow({ doc, product, posY })
-    posY = getPosY()
-  })
+  writeBillingTitle({ doc, billing })
+  writeBillingsHeaders({ doc })
+  generateProductsTable({ doc, products })
   generateBillingBottom({ doc, billing })
 }
