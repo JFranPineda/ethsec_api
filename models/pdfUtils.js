@@ -1,10 +1,7 @@
 const BILLINGS_HEADERS = ['ITEM', 'DESCRIPCIÓN', 'MODELO', 'CANT.', 'PRECIO UNIT.', 'TOTAL']
+const COLUMNS_WIDTH = [30, 250, 75, 50, 75, 75]
 
-const COLUMNS_WIDTH = [30, 300, 50, 50, 50, 75]
-
-const getTextWidth = (text) => {
-  return text.length * 5.5
-}
+const getTextWidth = (text) => text.length * 5.5
 
 const calculatePosX = (i) => {
   const x = COLUMNS_WIDTH.slice(0, i).reduce((acc, curr) => acc + curr, 30)
@@ -15,30 +12,30 @@ const billingPageProps = {
   posY: 0
 }
 
-export const getPosY = () => {
-  return billingPageProps.posY
-}
+const getPosY = () => billingPageProps.posY
+const setPosY = (posY) => { billingPageProps.posY = posY }
 
-export const setPosY = (posY) => {
-  billingPageProps.posY = posY
-}
-
-const wrapText = (text, width) => {
-  const words = text.split(' ')
+const wrapText = (text, maxWidth) => {
   const lines = []
-  let currentLine = ''
-  words.forEach(word => {
-    const potentialLine = currentLine.length === 0 ? word : `${currentLine} ${word}`
-    if (getTextWidth(potentialLine) <= width) {
-      currentLine = potentialLine
-    } else {
-      lines.push(currentLine)
-      currentLine = word
+  const paragraphs = text.split('\n')
+
+  paragraphs.forEach(paragraph => {
+    const words = paragraph.split(' ')
+    let currentLine = words[0] || ''
+
+    for (let i = 1; i < words.length; i++) {
+      const word = words[i]
+      const width = getTextWidth(currentLine + ' ' + word)
+      if (width < maxWidth) {
+        currentLine = currentLine + ' ' + word
+      } else {
+        lines.push(currentLine)
+        currentLine = word
+      }
     }
-  })
-  if (currentLine.length > 0) {
     lines.push(currentLine)
-  }
+  })
+
   return lines
 }
 
@@ -48,11 +45,6 @@ const printCellValue = ({ doc, index, value, posY, posX = calculatePosX(index) }
 
 const printTextValue = ({ doc, value, posY, posX = 30, width = 330 }) => {
   doc.text(value, posX, posY, { width, align: 'left' })
-}
-
-const getWrappedLines = ({ value, colPos = 0 }) => {
-  const wrappedLines = wrapText(value, COLUMNS_WIDTH[colPos])
-  return wrappedLines
 }
 
 const writeBillingsHeaders = ({ doc, posY }) => {
@@ -81,162 +73,82 @@ const checkBottomAndAddPage = ({ doc, posY, additionalHeight = 0 }) => {
   doc.font('Helvetica').fontSize(10)
   if (posY + additionalHeight > pageHeight) {
     doc.addPage()
-    posY = 50
+    posY = 30
     setPosY(posY)
   }
 }
 
+const printFormData = ({ doc, title, values, posX, posY, boxWidth = 300 }) => {
+  const boxPadding = 10
+  const lineHeight = 20
+  const boxRounded = 10
+  const fillTitleColor = '#2F75B5'
+  const fillFormColor = '#FFFCF6'
+  const borderColor = '#204F7A'
+  const textTitleColor = '#FFFFFF'
+  const textFormColor = '#000000'
+  let boxHeight = lineHeight + boxPadding
+
+  doc.save()
+    .roundedRect(posX - 10, posY, boxWidth, boxHeight, boxRounded)
+    .fillAndStroke(fillTitleColor, borderColor)
+    .restore()
+
+  posY = posY + boxPadding
+
+  doc.font('Helvetica-Bold').fontSize(10).fillColor(textTitleColor)
+  printTextValue({ doc, value: title, posY, posX, width: boxWidth })
+
+  posY = posY + lineHeight + boxPadding * 0.5
+  boxHeight = (values.length - 1) * lineHeight + boxPadding * 2
+  doc.save()
+    .roundedRect(posX - 10, posY, boxWidth, boxHeight, boxRounded)
+    .fillAndStroke(fillFormColor, borderColor)
+    .restore()
+
+  doc.font('Helvetica').fontSize(10).fillColor(textFormColor)
+  posY = posY + boxPadding * 0.5
+  values.forEach((value) => {
+    printTextValue({ doc, value, posX, posY, width: boxWidth })
+    posY += lineHeight
+  })
+
+  const maxPosY = Math.max(posY + boxPadding, getPosY())
+  setPosY(maxPosY)
+}
+
 /* eslint-disable camelcase */
 const generateClientForm = ({ doc, client, posY }) => {
-  doc.font('Helvetica-Bold').fontSize(12)
-  printTextValue({ doc, value: 'CLIENTE', posY })
-  posY += 20
-  doc.font('Helvetica').fontSize(10)
   const { ruc, company_name, contact, address, city, telephone } = client
-  const companyValue = `Cliente: ${company_name}`
-  const rucValue = `RUC: ${ruc}`
-  const addressValue = `Dirección: ${address}`
-  const cityValue = `Ciudad: ${city}`
-  const contactValue = `Contacto: ${contact}`
-  const telephoneValue = `Celular: ${telephone}`
   const values = [
-    companyValue,
-    rucValue,
-    addressValue,
-    cityValue,
-    contactValue,
-    telephoneValue
+    `Cliente: ${company_name}`,
+    `RUC: ${ruc}`,
+    `Dirección: ${address}`,
+    `Ciudad: ${city}`,
+    `Contacto: ${contact}`,
+    `Celular: ${telephone}`
   ]
-  values.forEach((value, i) => {
-    printTextValue({ doc, value, posY })
-    posY += 20
-  })
-  const maxPosY = Math.max(posY, getPosY())
-  setPosY(maxPosY)
+  printFormData({ doc, title: 'CLIENTE', values, posX: 30, posY, boxWidth: 300 })
 }
 
 /* eslint-disable camelcase */
 const generateSellerForm = ({ doc, seller, posY }) => {
-  doc.font('Helvetica-Bold').fontSize(12)
-  printTextValue({ doc, value: 'EMPRESA', posY, posX: 350, width: 200 })
-  posY += 20
-  doc.font('Helvetica').fontSize(10)
   const { first_name, last_name, telephone, email } = seller
-  const companyValue = 'Razon Social: ETHICAL SECURITY SAC'
-  const rucValue = 'RUC: 20545038227'
-  const contactValue = `Contacto: ${first_name} ${last_name}`
-  const emailValue = `Email: ${email}`
-  const telephoneValue = `Celular: ${telephone}`
   const values = [
-    companyValue,
-    rucValue,
-    contactValue,
-    emailValue,
-    telephoneValue
+    'Razon Social: ETHICAL SECURITY SAC',
+    'RUC: 20545038227',
+    `Contacto: ${first_name} ${last_name}`,
+    `Email: ${email}`,
+    `Celular: ${telephone}`,
+    ''
   ]
-  values.forEach((value, i) => {
-    printTextValue({ doc, value, posY, posX: 350, width: 200 })
-    posY += 20
-  })
-  const maxPosY = Math.max(posY, getPosY())
-  setPosY(maxPosY)
-}
-
-export const generateBillingTop = ({ doc, client = {}, seller = {} }) => {
-  let currentY = getPosY()
-  generateClientForm({ doc, client, posY: currentY })
-  generateSellerForm({ doc, seller, posY: currentY })
-  currentY = getPosY() + 20
-  setPosY(currentY)
-}
-
-const generateNotes = ({ doc, notes = '', posY }) => {
-  doc.font('Helvetica-Bold').fontSize(12)
-  printTextValue({ doc, value: 'NOTAS', posY })
-  posY += 20
-  doc.font('Helvetica').fontSize(10)
-  const notesLines = wrapText(notes, 330)
-  notesLines.forEach((value, i) => {
-    printTextValue({ doc, value, posY })
-    posY += 20
-  })
-  const maxPosY = Math.max(posY, getPosY())
-  setPosY(maxPosY)
-}
-
-const generateBillingAmounts = ({ doc, billing, posY }) => {
-  doc.font('Helvetica').fontSize(10)
-  const { before_taxes_amount, igv_amount, total_amount } = billing
-  const subTotalAmount = `SUBTOTAL: ${before_taxes_amount}`
-  const igvAmount = `IGV: ${igv_amount}`
-  const totalAmount = `TOTAL: ${total_amount}`
-  const values = [
-    subTotalAmount,
-    igvAmount,
-    totalAmount
-  ]
-  values.forEach((value, i) => {
-    printTextValue({ doc, value, posY, posX: 350, width: 200 })
-    posY += 20
-  })
-  const maxPosY = Math.max(posY, getPosY())
-  setPosY(maxPosY)
-}
-
-const generateCommercialConditions = ({ doc, billing, posY }) => {
-  doc.font('Helvetica-Bold').fontSize(12)
-  printTextValue({ doc, value: 'CONDICIONES COMERCIALES', posY })
-  posY += 20
-  doc.font('Helvetica').fontSize(10)
-  const { expiration_time, money_type = 'PEN' } = billing
-  const expirationValue = `Validez de la oferta: ${expiration_time} días`
-  const deliveryTimeValue = 'Tiempo de entrega: 01 día después de colocada la orden'
-  const instalationTime = 'Tiempo de instalación: No incluye'
-  const paymentFormValue = 'Forma de pago: CONTADO'
-  const moneyType = money_type === 'PEN' ? 'soles peruanos' : 'dólares americanos'
-  const priceLabel = `Precio: Expresado en ${moneyType}`
-  const values = [
-    expirationValue,
-    deliveryTimeValue,
-    instalationTime,
-    paymentFormValue,
-    priceLabel
-  ]
-  values.forEach((value, i) => {
-    printTextValue({ doc, value, posY, width: 400 })
-    posY += 20
-  })
-  setPosY(posY)
-}
-
-const printBankInformation = ({ doc, data, posY }) => {
-  const { bank_name, usd_account, cci_usd, pen_account, cci_pen } = data
-  doc.font('Helvetica-Bold').fontSize(11)
-  printTextValue({ doc, value: `Institución Financiera: ${bank_name}`, posY, width: 600 })
-  posY += 20
-  doc.font('Helvetica').fontSize(10)
-  const usdAccount = `Cuenta de Ahorro Empresarial (USD): ${usd_account}`
-  const cciUsdAccount = `Código de cuenta interbancario (CCI): ${cci_usd}`
-  const penAccount = `Cuenta Corriente (S/.): ${pen_account}`
-  const cciPenAccount = `Código cuenta interbancario (S/.) (CCI): ${cci_pen}`
-  const values = [
-    usdAccount,
-    cciUsdAccount,
-    penAccount,
-    cciPenAccount
-  ]
-  values.forEach((value, i) => {
-    printTextValue({ doc, value, posY, width: 600 })
-    posY += 20
-  })
-  posY += 20
-  setPosY(posY)
+  printFormData({ doc, title: 'EMPRESA', values, posX: 350, posY, boxWidth: 200 })
 }
 
 const generateFinnancialInfo = ({ doc, posY }) => {
   checkBottomAndAddPage({ doc, posY, additionalHeight: 120 })
   posY = getPosY()
-  doc.font('Helvetica-Bold').fontSize(12)
+  doc.font('Helvetica-Bold').fontSize(10)
   printTextValue({ doc, value: 'CONDICIONES COMERCIALES', posY })
   posY += 20
   const banbifAccount = {
@@ -262,15 +174,127 @@ const generateFinnancialInfo = ({ doc, posY }) => {
   printBankInformation({ doc, data: interbankAccount, posY })
   checkBottomAndAddPage({ doc, posY, additionalHeight: 120 })
   posY = getPosY()
-  doc.font('Helvetica-Bold').fontSize(12)
+  doc.font('Helvetica-Bold').fontSize(10)
   const closingSentence = '¡Gracias por su confianza!'
   printTextValue({ doc, value: closingSentence, posY, width: 600 })
 }
 
-export const generateBillingBottom = ({ doc, billing = {} }) => {
+const printBankInformation = ({ doc, data, posY }) => {
+  const { bank_name, usd_account, cci_usd, pen_account, cci_pen } = data
+  doc.font('Helvetica-Bold').fontSize(10)
+  printTextValue({ doc, value: `Institución Financiera: ${bank_name}`, posY, width: 600 })
+  posY += 20
+  doc.font('Helvetica').fontSize(10)
+  const usdAccount = `Cuenta de Ahorro Empresarial (USD): ${usd_account}`
+  const cciUsdAccount = `Código de cuenta interbancario (CCI): ${cci_usd}`
+  const penAccount = `Cuenta Corriente (S/.): ${pen_account}`
+  const cciPenAccount = `Código cuenta interbancario (S/.) (CCI): ${cci_pen}`
+  const values = [
+    usdAccount,
+    cciUsdAccount,
+    penAccount,
+    cciPenAccount
+  ]
+  values.forEach((value, i) => {
+    printTextValue({ doc, value, posY, width: 600 })
+    posY += 20
+  })
+  posY += 20
+  setPosY(posY)
+}
+
+const generateBillingTop = ({ doc, client = {}, seller = {} }) => {
+  let currentY = getPosY()
+  generateClientForm({ doc, client, posY: currentY })
+  generateSellerForm({ doc, seller, posY: currentY })
+  currentY = getPosY() + 20
+  setPosY(currentY)
+  // Draw horizontal line
+  doc.moveTo(30, currentY).lineTo(550, currentY).stroke()
+  currentY += 20
+  // Add Quotation number and date
+  doc.font('Helvetica-Bold').fontSize(12).text('COTIZACIÓN NRO. 000056', 0, currentY, { align: 'center' })
+  currentY += 20
+  doc.font('Helvetica').fontSize(10).text('Emitido el: 24 de Junio de 2024', 0, currentY, { align: 'center' })
+  currentY += 30
+  setPosY(currentY)
+}
+
+const generateNotes = ({ doc, notes = '', posY }) => {
+  doc.font('Helvetica-Bold').fontSize(10)
+  printTextValue({ doc, value: 'NOTAS', posY })
+  posY += 20
+  doc.font('Helvetica').fontSize(10)
+  const notesLines = wrapText(notes, 330)
+  notesLines.forEach((value, i) => {
+    printTextValue({ doc, value, posY })
+    posY += 15
+  })
+  const maxPosY = Math.max(posY, getPosY())
+  setPosY(maxPosY)
+}
+
+const generateBillingAmounts = ({ doc, billing, posY }) => {
+  doc.font('Helvetica').fontSize(10)
+  const { before_taxes_amount, igv_amount, total_amount } = billing
+  const subTotalAmount = `SUBTOTAL: ${before_taxes_amount}`
+  const igvAmount = `IGV: ${igv_amount}`
+  const totalAmount = `TOTAL: ${total_amount}`
+  const values = [subTotalAmount, igvAmount, totalAmount]
+  values.forEach((value, i) => {
+    printTextValue({ doc, value, posY, posX: 350, width: 200 })
+    posY += 20
+  })
+  const maxPosY = Math.max(posY, getPosY())
+  setPosY(maxPosY)
+}
+
+const generateCommercialConditions = ({ doc, billing, posY }) => {
+  doc.font('Helvetica-Bold').fontSize(10)
+  printTextValue({ doc, value: 'CONDICIONES COMERCIALES', posY })
+  posY += 20
+  doc.font('Helvetica').fontSize(10)
+  const { expiration_time, money_type = 'PEN' } = billing
+  const expirationValue = `Validez de la oferta: ${expiration_time} días`
+  const deliveryTimeValue = 'Tiempo de entrega: De 7 a 10 días hábiles luego de la OC'
+  const moneyTypeValue = `Moneda: ${money_type === 'USD' ? 'Dólares Americanos' : 'Soles (PEN)'}`
+  const paymentFormValue = 'Forma de pago: 50% Adelanto y 50% saldo contra entrega'
+  const values = [expirationValue, deliveryTimeValue, moneyTypeValue, paymentFormValue]
+  values.forEach((value, i) => {
+    printTextValue({ doc, value, posY })
+    posY += 20
+  })
+  const maxPosY = Math.max(posY, getPosY())
+  setPosY(maxPosY)
+}
+
+const generateTableRow = ({ doc, product, posY }) => {
+  doc.font('Helvetica').fontSize(10)
+  const { description = '', model = '', quantity = 0, unit_price = 0, total = 0, item = 1 } = product
+  const columns = [
+    item,
+    description,
+    model,
+    quantity,
+    unit_price.toFixed(2),
+    total.toFixed(2)
+  ]
+  columns.forEach((value, i) => {
+    const textLines = i === 1 ? wrapText(value, COLUMNS_WIDTH[i]) : [value.toString()]
+    textLines.forEach((line, idx) => {
+      checkAndAddPage({ doc, posY, additionalHeight: 20 })
+      printCellValue({ doc, index: i, value: line, posY })
+      posY += idx === textLines.length - 1 ? 0 : 20
+    })
+  })
+  posY += 20
+  setPosY(posY)
+}
+
+const generateBillingBottom = ({ doc, billing = {} }) => {
   let currentY = getPosY()
   checkBottomAndAddPage({ doc, posY: currentY, additionalHeight: 70 })
-  currentY = getPosY()
+  currentY = getPosY() + 20
   const { notes } = billing
   generateNotes({ doc, notes, posY: currentY })
   generateBillingAmounts({ doc, billing, posY: currentY })
@@ -284,39 +308,18 @@ export const generateBillingBottom = ({ doc, billing = {} }) => {
   generateFinnancialInfo({ doc, posY: currentY })
 }
 
-export const generateProductsBillingTable = ({ doc, products }) => {
-  const lineHeight = 20
-  let currentY = getPosY()
-  // TODO: Fix when headers + firstRow > pageHeight
-  writeBillingsHeaders({ doc, posY: currentY })
-  currentY = getPosY()
-  products.forEach(product => {
-    const values = [
-      product.item.toString(),
-      '',
-      product.model,
-      product.reserved_quantity.toString(),
-      product.unit_price.toFixed(2),
-      product.total.toFixed(2)
-    ]
-    const descriptionLines = getWrappedLines({ value: product.description, colPos: 1 })
-    const linesDown = Math.max(descriptionLines.length, 1)
-    const additionalHeight = linesDown * lineHeight
-    checkAndAddPage({ doc, posY: currentY, additionalHeight })
-    currentY = getPosY()
-
-    values.forEach((value, i) => {
-      if (i !== 1) {
-        printCellValue({ doc, index: i, value, posY: currentY })
-      } else {
-        descriptionLines.forEach((line, index) => {
-          const newPosY = currentY + index * lineHeight
-          printCellValue({ doc, index: i, value: line, posY: newPosY })
-        })
-      }
-    })
-    currentY += lineHeight * linesDown
-  })
-  currentY += 20
+export const generatePDF = async ({ doc, client, billing, seller }) => {
+  const { products = [] } = billing
+  const currentY = 50
   setPosY(currentY)
+  generateBillingTop({ doc, client, seller })
+  let posY = getPosY()
+  writeBillingsHeaders({ doc, posY })
+  posY = getPosY()
+  products.forEach((product, i) => {
+    product.item = i + 1
+    generateTableRow({ doc, product, posY })
+    posY = getPosY()
+  })
+  generateBillingBottom({ doc, billing })
 }

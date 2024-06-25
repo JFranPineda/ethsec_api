@@ -8,10 +8,7 @@ import {
   updateProductsByIgvAndMoney
 } from '../utils.js'
 import {
-  generateBillingBottom,
-  generateBillingTop,
-  generateProductsBillingTable,
-  setPosY
+  generatePDF
 } from '../pdfUtils.js'
 import PDFDocument from 'pdfkit'
 
@@ -208,15 +205,19 @@ export class BillingModel {
     return value
   }
 
-  static async generatePdf ({ billing, client, seller }) {
+  static async generateNewPdf ({ billing, client, seller }) {
     return new Promise((resolve, reject) => {
-      const { products = [] } = billing
-      const doc = new PDFDocument({ size: 'A4', margins: { top: 40, left: 30, bottom: 40, right: 30 } })
-      const currentY = 50
-      setPosY(currentY)
-      generateBillingTop({ doc, client, seller })
-      generateProductsBillingTable({ doc, products })
-      generateBillingBottom({ doc, billing })
+      const doc = new PDFDocument({
+        size: 'A4',
+        layout: 'portrait',
+        margins: {
+          top: 30,
+          bottom: 30,
+          left: 30,
+          right: 30
+        }
+      })
+      generatePDF({ doc, client, billing, seller })
       const buffer = []
       doc.on('data', (chunk) => {
         buffer.push(chunk)

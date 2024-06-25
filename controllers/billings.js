@@ -167,7 +167,7 @@ export class BillingController {
     if (seller_id) {
       input.seller = await SellerModel.getById({ id: billing.seller_id })
     }
-    const pdfBase64 = await BillingModel.generatePdf({ ...input })
+    const pdfBase64 = await BillingModel.generateNewPdf({ ...input })
     if (!pdfBase64) return res.status(400).json({ error: 'Error creating PDF in billing controller' })
     res.json({ pdf: pdfBase64 })
   }
