@@ -390,7 +390,7 @@ const writePageNumber = ({ doc, pageIndex }) => {
     })
 }
 
-export const addDocPagination = ({ doc }) => {
+const addDocPagination = ({ doc }) => {
   const pages = getDocPages()
   pages.forEach((page, index) => {
     doc.switchToPage(index)
@@ -398,7 +398,7 @@ export const addDocPagination = ({ doc }) => {
   })
 }
 
-export const addNewPage = ({ page }) => {
+const addNewPage = ({ page }) => {
   billingPageProps.pages.push(page)
 }
 
