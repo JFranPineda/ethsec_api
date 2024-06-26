@@ -26,6 +26,14 @@ const getDocPages = () => {
   return pages
 }
 
+const addNewPage = ({ page }) => {
+  billingPageProps.pages.push(page)
+}
+
+const cleanDocPages = () => {
+  billingPageProps.pages = []
+}
+
 const getPagesSize = () => {
   const pages = billingPageProps.pages
   const size = pages.length
@@ -396,10 +404,7 @@ const addDocPagination = ({ doc }) => {
     doc.switchToPage(index)
     writePageNumber({ doc, pageIndex: index })
   })
-}
-
-const addNewPage = ({ page }) => {
-  billingPageProps.pages.push(page)
+  cleanDocPages()
 }
 
 const createNewPage = ({ doc }) => {
@@ -411,8 +416,7 @@ const createNewPage = ({ doc }) => {
   setPosY(posY)
 }
 
-export const generatePDF = async ({ doc, client, billing, seller }) => {
-  setPosY(TOP_MARGIN)
+export const generatePDF = ({ doc, client, billing, seller }) => {
   createNewPage({ doc })
   generateBillingTop({ doc, client, seller })
   writeBillingTitle({ doc, billing })
