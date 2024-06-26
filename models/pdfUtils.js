@@ -1,5 +1,13 @@
 const BILLINGS_HEADERS = ['ITEM', 'DESCRIPCIÓN', 'MODELO', 'CANT.', 'PRECIO UNIT.', 'TOTAL']
 const COLUMNS_WIDTH = [30, 250, 75, 50, 75, 75]
+const HEADER_IMAGE_PATH = './resources/ethical_logo.png'
+const FOOTER_IMAGE_PATH = './resources/footer_image.png'
+const IMAGE_LOGO_WIDTH = 131
+const IMAGE_LOGO_HEIGHT = 35
+const IMAGE_FOOTER_WIDTH = 310
+const IMAGE_FOOTER_HEIGHT = 35
+const TOP_MARGIN = 70
+const LINE_HEIGHT_FORM = 13
 
 const getTextWidth = (text) => text.length * 5.5
 
@@ -9,7 +17,19 @@ const calculatePosX = (i) => {
 }
 
 const billingPageProps = {
-  posY: 0
+  posY: 0,
+  pages: []
+}
+
+const getDocPages = () => {
+  const pages = billingPageProps.pages
+  return pages
+}
+
+const getPagesSize = () => {
+  const pages = billingPageProps.pages
+  const size = pages.length
+  return size
 }
 
 const getPosY = () => billingPageProps.posY
@@ -64,13 +84,11 @@ const writeBillingsHeaders = ({ doc }) => {
 }
 
 const checkBottomAndAddHeaders = ({ doc, additionalHeight = 0 }) => {
-  let posY = getPosY()
+  const posY = getPosY()
   const pageHeight = doc.page.height - doc.page.margins.top - doc.page.margins.bottom
   doc.font('Helvetica').fontSize(10)
   if (posY + additionalHeight > pageHeight) {
-    doc.addPage()
-    posY = 50
-    setPosY(posY)
+    createNewPage({ doc })
     writeBillingsHeaders({ doc })
   } else {
     setPosY(posY)
@@ -78,19 +96,17 @@ const checkBottomAndAddHeaders = ({ doc, additionalHeight = 0 }) => {
 }
 
 const checkBottomAndAddPage = ({ doc, additionalHeight = 0 }) => {
-  let posY = getPosY()
+  const posY = getPosY()
   const pageHeight = doc.page.height - doc.page.margins.top - doc.page.margins.bottom - 1.89
   doc.font('Helvetica').fontSize(10)
   if (posY + additionalHeight > pageHeight) {
-    doc.addPage()
-    posY = 50
-    setPosY(posY)
+    createNewPage({ doc })
   }
 }
 
 const printFormData = ({ doc, title, values, posX, posY = getPosY(), boxWidth = 300 }) => {
-  const boxPadding = 10
-  const lineHeight = 20
+  const boxPadding = 5
+  const lineHeight = LINE_HEIGHT_FORM
   const boxRounded = 5
   const fillTitleColor = '#2F75B5'
   const fillFormColor = '#FFFFFF'
@@ -100,24 +116,24 @@ const printFormData = ({ doc, title, values, posX, posY = getPosY(), boxWidth = 
   let boxHeight = lineHeight + boxPadding
 
   doc.save()
-    .roundedRect(posX - 10, posY, boxWidth, boxHeight, boxRounded)
+    .roundedRect(posX - boxPadding, posY, boxWidth, boxHeight, boxRounded)
     .fillAndStroke(fillTitleColor, borderColor)
     .restore()
 
   posY = posY + boxPadding
 
-  doc.font('Helvetica-Bold').fontSize(12).fillColor(textTitleColor)
+  doc.font('Helvetica-Bold').fontSize(11).fillColor(textTitleColor)
   printCenterTextValue({ doc, value: title, posY, posX, width: boxWidth })
 
   posY = posY + lineHeight + boxPadding * 0.5
-  boxHeight = (values.length - 1) * lineHeight + boxPadding * 2
+  boxHeight = values.length * lineHeight + boxPadding
   doc.save()
-    .roundedRect(posX - 10, posY, boxWidth, boxHeight, boxRounded)
+    .roundedRect(posX - boxPadding, posY, boxWidth, boxHeight, boxRounded)
     .fillAndStroke(fillFormColor, borderColor)
     .restore()
 
   doc.font('Helvetica').fontSize(10).fillColor(textFormColor)
-  posY = posY + boxPadding * 0.5
+  posY = posY + boxPadding
   values.forEach((value) => {
     printTextValue({ doc, value, posX, posY, width: boxWidth })
     posY += lineHeight
@@ -218,7 +234,7 @@ const generateBillingTop = ({ doc, client = {}, seller = {} }) => {
   generateSellerForm({ doc, seller, posY })
   let currentY = getPosY()
   doc.moveTo(30, currentY).lineTo(550, currentY).stroke()
-  currentY += 10
+  currentY += 20
   setPosY(currentY)
 }
 
@@ -337,7 +353,8 @@ const generateBillingBottom = ({ doc, billing = {} }) => {
   generateFinnancialInfo({ doc })
 }
 
-const generateProductsTable = ({ doc, products }) => {
+const generateProductsTable = ({ doc, billing }) => {
+  const { products = [] } = billing
   products.forEach((product, i) => {
     product.item = i + 1
     generateTableRow({ doc, product })
@@ -346,13 +363,61 @@ const generateProductsTable = ({ doc, products }) => {
   setPosY(posY)
 }
 
+const addHeaderImage = ({ doc }) => {
+  const imageWidth = IMAGE_LOGO_WIDTH
+  const imageHeight = IMAGE_LOGO_HEIGHT
+  const imageX = doc.page.width - doc.page.margins.right - imageWidth
+  const imageY = doc.page.margins.top
+  doc.image(HEADER_IMAGE_PATH, imageX, imageY, { width: imageWidth, height: imageHeight })
+}
+
+const addFooterImage = ({ doc }) => {
+  const imageWidth = IMAGE_FOOTER_WIDTH
+  const imageHeight = IMAGE_FOOTER_HEIGHT
+  const imageX = doc.page.width - doc.page.margins.right - imageWidth
+  const imageY = doc.page.height - doc.page.margins.bottom - imageHeight
+  doc.image(FOOTER_IMAGE_PATH, imageX, imageY, { width: imageWidth, height: imageHeight })
+}
+
+const writePageNumber = ({ doc, pageIndex }) => {
+  const textPageColor = '#2F75B5'
+  const pageNumber = pageIndex + 1
+  const totalPages = getPagesSize()
+  doc.fontSize(10).fillColor(textPageColor)
+    .text(`Página ${pageNumber} de ${totalPages}`, 30, doc.page.height - 50, {
+      align: 'center',
+      width: doc.page.width - 60
+    })
+}
+
+export const addDocPagination = ({ doc }) => {
+  const pages = getDocPages()
+  pages.forEach((page, index) => {
+    doc.switchToPage(index)
+    writePageNumber({ doc, pageIndex: index })
+  })
+}
+
+export const addNewPage = ({ page }) => {
+  billingPageProps.pages.push(page)
+}
+
+const createNewPage = ({ doc }) => {
+  addNewPage({ page: doc.page })
+  doc.addPage()
+  addHeaderImage({ doc })
+  addFooterImage({ doc })
+  const posY = TOP_MARGIN
+  setPosY(posY)
+}
+
 export const generatePDF = async ({ doc, client, billing, seller }) => {
-  const { products = [] } = billing
-  const TOP_MARGIN = 50
   setPosY(TOP_MARGIN)
+  createNewPage({ doc })
   generateBillingTop({ doc, client, seller })
   writeBillingTitle({ doc, billing })
   writeBillingsHeaders({ doc })
-  generateProductsTable({ doc, products })
+  generateProductsTable({ doc, billing })
   generateBillingBottom({ doc, billing })
+  addDocPagination({ doc })
 }

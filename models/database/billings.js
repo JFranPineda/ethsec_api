@@ -1,5 +1,6 @@
 import { ObjectId } from 'mongodb'
 import { client } from './connect.js'
+import fs from 'fs'
 import {
   calculateBillingAmounts,
   calculateNewProducts,
@@ -211,11 +212,20 @@ export class BillingModel {
         size: 'A4',
         layout: 'portrait',
         margins: {
-          top: 30,
-          bottom: 30,
-          left: 30,
-          right: 30
-        }
+          top: 20,
+          bottom: 20,
+          left: 50,
+          right: 50
+        },
+        autoFirstPage: false,
+        bufferPages: true
+      })
+      const filePath = './output.pdf'
+      doc.pipe(fs.createWriteStream(filePath))
+
+      const pages = []
+      doc.on('pageAdded', () => {
+        pages.push(doc.page)
       })
       generatePDF({ doc, client, billing, seller })
       const buffer = []
