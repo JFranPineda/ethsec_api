@@ -4,8 +4,8 @@ const HEADER_IMAGE_PATH = './resources/ethical_logo.png'
 const FOOTER_IMAGE_PATH = './resources/footer_image.png'
 const IMAGE_LOGO_WIDTH = 131
 const IMAGE_LOGO_HEIGHT = 35
-const IMAGE_FOOTER_WIDTH = 310
-const IMAGE_FOOTER_HEIGHT = 35
+const IMAGE_FOOTER_WIDTH = 270
+const IMAGE_FOOTER_HEIGHT = 30
 const TOP_MARGIN = 70
 const LINE_HEIGHT_FORM = 13
 
@@ -282,9 +282,9 @@ const generateNotes = ({ doc, notes = '', posY = getPosY() }) => {
 const generateBillingAmounts = ({ doc, billing, posY = getPosY() }) => {
   doc.font('Helvetica').fontSize(10)
   const { before_taxes_amount, igv_amount, total_amount } = billing
-  const subTotalAmount = `SUBTOTAL: ${before_taxes_amount}`
-  const igvAmount = `IGV: ${igv_amount}`
-  const totalAmount = `TOTAL: ${total_amount}`
+  const subTotalAmount = `SUBTOTAL: ${before_taxes_amount.toFixed(2)}`
+  const igvAmount = `IGV: ${igv_amount.toFixed(2)}`
+  const totalAmount = `TOTAL: ${total_amount.toFixed(2)}`
   const values = [subTotalAmount, igvAmount, totalAmount]
   values.forEach((value, i) => {
     printTextValue({ doc, value, posY, posX: 350, width: 200 })
@@ -391,16 +391,18 @@ const writePageNumber = ({ doc, pageIndex }) => {
   const textPageColor = '#2F75B5'
   const pageNumber = pageIndex + 1
   const totalPages = getPagesSize()
+  const textHeight = 15
+  const textBottomPos = doc.page.height - doc.page.margins.bottom - textHeight
   doc.fontSize(10).fillColor(textPageColor)
-    .text(`Página ${pageNumber} de ${totalPages}`, 30, doc.page.height - 50, {
-      align: 'center',
+    .text(`Página ${pageNumber} de ${totalPages}`, 30, textBottomPos, {
+      align: 'left',
       width: doc.page.width - 60
     })
 }
 
 const addDocPagination = ({ doc }) => {
   const pages = getDocPages()
-  pages.forEach((page, index) => {
+  pages.forEach((_, index) => {
     doc.switchToPage(index)
     writePageNumber({ doc, pageIndex: index })
   })
