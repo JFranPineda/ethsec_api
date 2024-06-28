@@ -25,6 +25,6 @@ app.listen(PORT, () => {
   console.log(`server listening on port http://localhost:${PORT}`)
 })
 
-exports.handler = async (event, context) => {
-  return serverless(app)
-}
+const handler = serverless(app)
+
+export { handler }
