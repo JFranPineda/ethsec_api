@@ -9,6 +9,7 @@ const IMAGE_FOOTER_WIDTH = 270
 const IMAGE_FOOTER_HEIGHT = 30
 const TOP_MARGIN = 70
 const LINE_HEIGHT_FORM = 13
+const TOTAL_FORM_PADDING = 5
 
 const getTextWidth = (text) => text.length * 5.5
 
@@ -232,15 +233,11 @@ const printBankInformation = ({ doc, data }) => {
   printTextValue({ doc, value: `Institución Financiera: ${bank_name}`, posY, width: 600 })
   posY += 20
   doc.font('Helvetica').fontSize(10)
-  const usdAccount = `Cuenta de Ahorro Empresarial (USD): ${usd_account}`
-  const cciUsdAccount = `Código de cuenta interbancario (CCI): ${cci_usd}`
-  const penAccount = `Cuenta Corriente (S/.): ${pen_account}`
-  const cciPenAccount = `Código cuenta interbancario (S/.) (CCI): ${cci_pen}`
   const values = [
-    usdAccount,
-    cciUsdAccount,
-    penAccount,
-    cciPenAccount
+    `Cuenta de Ahorro Empresarial (USD): ${usd_account}`,
+    `Código de cuenta interbancario (CCI): ${cci_usd}`,
+    `Cuenta Corriente (S/.): ${pen_account}`,
+    `Código cuenta interbancario (S/.) (CCI): ${cci_pen}`
   ]
   values.forEach((value, i) => {
     printTextValue({ doc, value, posY, width: 600 })
@@ -251,11 +248,13 @@ const printBankInformation = ({ doc, data }) => {
 }
 
 const generateBillingTop = ({ doc, client = {}, seller = {} }) => {
+  const posX = 30
   const posY = getPosY()
+  const lineWidth = doc.page.width - posX
   generateClientForm({ doc, client, posY })
   generateSellerForm({ doc, seller, posY })
   let currentY = getPosY()
-  doc.moveTo(30, currentY).lineTo(550, currentY).stroke()
+  doc.moveTo(posX, currentY).lineTo(lineWidth, currentY).stroke()
   currentY += 20
   setPosY(currentY)
 }
@@ -294,15 +293,20 @@ const generateNotes = ({ doc, notes = '', posY = getPosY() }) => {
 }
 
 const generateBillingAmounts = ({ doc, billing, posY = getPosY() }) => {
+  const posX = 350
+  const cellWidth = doc.page.width - posX - doc.page.margins.right
   doc.font('Helvetica').fontSize(10)
   const { before_taxes_amount, igv_amount, total_amount } = billing
-  const subTotalAmount = `SUBTOTAL: ${before_taxes_amount.toFixed(2)}`
-  const igvAmount = `IGV: ${igv_amount.toFixed(2)}`
-  const totalAmount = `TOTAL: ${total_amount.toFixed(2)}`
-  const values = [subTotalAmount, igvAmount, totalAmount]
+  const values = [
+    `SUBTOTAL: ${before_taxes_amount.toFixed(2)}`,
+    `IGV: ${igv_amount.toFixed(2)}`,
+    `TOTAL: ${total_amount.toFixed(2)}`
+  ]
   values.forEach((value, i) => {
-    printTextValue({ doc, value, posY, posX: 350, width: 200 })
-    posY += 20
+    printTextValue({ doc, value, posY, posX: posX + TOTAL_FORM_PADDING, width: cellWidth })
+    posY += LINE_HEIGHT_FORM
+    doc.moveTo(posX, posY).lineTo(posX + cellWidth, posY).stroke()
+    posY += TOTAL_FORM_PADDING
   })
   const maxPosY = Math.max(posY, getPosY())
   setPosY(maxPosY)
@@ -315,11 +319,12 @@ const generateCommercialConditions = ({ doc, billing }) => {
   posY += 20
   doc.font('Helvetica').fontSize(10)
   const { expiration_time, money_type = 'PEN' } = billing
-  const expirationValue = `Validez de la oferta: ${expiration_time} días`
-  const deliveryTimeValue = 'Tiempo de entrega: De 7 a 10 días hábiles luego de la OC'
-  const moneyTypeValue = `Moneda: ${money_type === 'USD' ? 'Dólares Americanos' : 'Soles (PEN)'}`
-  const paymentFormValue = 'Forma de pago: 50% Adelanto y 50% saldo contra entrega'
-  const values = [expirationValue, deliveryTimeValue, moneyTypeValue, paymentFormValue]
+  const values = [
+    `Validez de la oferta: ${expiration_time} días`,
+    'Tiempo de entrega: De 7 a 10 días hábiles luego de la OC',
+    `Moneda: ${money_type === 'USD' ? 'Dólares Americanos' : 'Soles (PEN)'}`,
+    'Forma de pago: 50% Adelanto y 50% saldo contra entrega'
+  ]
   values.forEach((value, i) => {
     printTextValue({ doc, value, posY })
     posY += 20
