@@ -1,8 +1,10 @@
+import path from 'path'
+
 const BILLINGS_HEADERS = ['ITEM', 'DESCRIPCIÓN', 'MODELO', 'CANT.', 'PRECIO UNIT.', 'TOTAL']
 const COLUMNS_WIDTH = [30, 230, 70, 45, 75, 75]
 const TABLE_PADDING = 5
-const HEADER_IMAGE_PATH = './resources/ethical_logo.png'
-const FOOTER_IMAGE_PATH = './resources/footer_image.png'
+const HEADER_IMAGE_PATH = path.join(__dirname, '../public/resources/ethical_logo.png')
+const FOOTER_IMAGE_PATH = path.join(__dirname, '../public/resources/footer_image.png')
 const IMAGE_LOGO_WIDTH = 131
 const IMAGE_LOGO_HEIGHT = 35
 const IMAGE_FOOTER_WIDTH = 270
