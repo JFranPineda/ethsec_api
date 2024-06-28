@@ -1,6 +1,5 @@
 import { ObjectId } from 'mongodb'
 import { client } from './connect.js'
-import fs from 'fs'
 import {
   calculateBillingAmounts,
   calculateNewProducts,
