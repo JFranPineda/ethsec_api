@@ -1,5 +1,6 @@
 const BILLINGS_HEADERS = ['ITEM', 'DESCRIPCIÓN', 'MODELO', 'CANT.', 'PRECIO UNIT.', 'TOTAL']
-const COLUMNS_WIDTH = [30, 250, 75, 50, 75, 75]
+const COLUMNS_WIDTH = [30, 230, 70, 45, 75, 75]
+const TABLE_PADDING = 5
 const HEADER_IMAGE_PATH = './resources/ethical_logo.png'
 const FOOTER_IMAGE_PATH = './resources/footer_image.png'
 const IMAGE_LOGO_WIDTH = 131
@@ -12,7 +13,7 @@ const LINE_HEIGHT_FORM = 13
 const getTextWidth = (text) => text.length * 5.5
 
 const calculatePosX = (i) => {
-  const x = COLUMNS_WIDTH.slice(0, i).reduce((acc, curr) => acc + curr, 30)
+  const x = COLUMNS_WIDTH.slice(0, i).reduce((acc, curr) => acc + curr + TABLE_PADDING, 30)
   return x
 }
 
@@ -82,12 +83,25 @@ const printCenterTextValue = ({ doc, value, posY, posX = 30, width = 330 }) => {
 
 const writeBillingsHeaders = ({ doc }) => {
   let posY = getPosY()
-  doc.font('Helvetica-Bold').fontSize(10)
+  const lineHeight = LINE_HEIGHT_FORM
+  const fillTitleColor = '#2F75B5'
+  const borderColor = '#204F7A'
+  const textTitleColor = '#FFFFFF'
+  const boxHeight = lineHeight + TABLE_PADDING
+  const posTextHeader = posY + TABLE_PADDING
+
   BILLINGS_HEADERS.forEach((header, i) => {
-    printCellValue({ doc, index: i, value: header, posY })
+    const posX = calculatePosX(i)
+    const boxWidth = COLUMNS_WIDTH[i] + TABLE_PADDING
+    doc.save()
+      .rect(posX - TABLE_PADDING, posY, boxWidth, boxHeight)
+      .fillAndStroke(fillTitleColor, borderColor)
+      .restore()
+
+    doc.font('Helvetica-Bold').fontSize(11).fillColor(textTitleColor)
+    printCellValue({ doc, index: i, value: header, posY: posTextHeader })
   })
-  doc.font('Helvetica').fontSize(10)
-  posY += 30
+  posY += 20
   setPosY(posY)
 }
 
@@ -261,7 +275,7 @@ const writeBillingTitle = ({ doc, billing = {} }) => {
   }).format(currentDate)
   const formattedDateText = `Emitido el: ${formattedDate.replace(' de ', ' de ')}`
   doc.font('Helvetica').fontSize(10).text(formattedDateText, 0, currentY, { align: 'center' })
-  currentY += 30
+  currentY += 20
   setPosY(currentY)
 }
 
@@ -316,8 +330,10 @@ const generateCommercialConditions = ({ doc, billing }) => {
 
 const generateTableRow = ({ doc, product }) => {
   let posY = getPosY()
-  const initialPosY = getPosY()
-  doc.font('Helvetica').fontSize(10)
+  const initialPosY = getPosY() + TABLE_PADDING
+  const textCellColor = '#000000'
+
+  doc.font('Helvetica').fontSize(10).fillColor(textCellColor)
   const { description = '', model = '', reserved_quantity = 0, unit_price = 0, total = 0, item = 1 } = product
   const columns = [
     item,
@@ -327,12 +343,15 @@ const generateTableRow = ({ doc, product }) => {
     unit_price.toFixed(2),
     total.toFixed(2)
   ]
+
+  const posX = calculatePosX(0)
+  const lineWidth = doc.page.width - posX
   columns.forEach((value, i) => {
+    checkBottomAndAddHeaders({ doc, additionalHeight: 20 })
     if (i === 1) {
       const textLines = wrapText(value, COLUMNS_WIDTH[1])
       textLines.forEach((line, idx) => {
-        checkBottomAndAddHeaders({ doc, additionalHeight: 20 })
-        printCellValue({ doc, index: 1, value: line, posY })
+        printCellValue({ doc, index: 1, value: line, posY: posY + TABLE_PADDING })
         posY += idx === textLines.length - 1 ? 0 : 20
       })
     } else {
@@ -341,6 +360,7 @@ const generateTableRow = ({ doc, product }) => {
     }
   })
   posY += 20
+  doc.moveTo(posX, posY).lineTo(lineWidth, posY).stroke()
   setPosY(posY)
 }
 
