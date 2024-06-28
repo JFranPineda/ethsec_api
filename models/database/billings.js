@@ -220,9 +220,6 @@ export class BillingModel {
         autoFirstPage: false,
         bufferPages: true
       })
-      const filePath = './output.pdf'
-      doc.pipe(fs.createWriteStream(filePath))
-
       const pages = []
       doc.on('pageAdded', () => {
         pages.push(doc.page)
