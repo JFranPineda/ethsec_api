@@ -19,11 +19,15 @@ app.use('/sellers', sellersRouter)
 app.use('/money_catalog', moneyCatalogRouter)
 app.use('/billings', billingsRouter)
 
-const PORT = process.env.PORT ?? 3000
-
-app.listen(PORT, () => {
-  console.log(`server listening on port http://localhost:${PORT}`)
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not Foundddd' })
 })
+
+// const PORT = process.env.PORT ?? 3000
+
+// app.listen(PORT, () => {
+//   console.log(`server listening on port http://localhost:${PORT}`)
+// })
 
 const handler = serverless(app)
 
